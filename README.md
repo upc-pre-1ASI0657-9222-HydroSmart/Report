@@ -50,7 +50,7 @@
   </tr>
   <tr>
     <td style="padding: 2px 20px;">Torres Lavandera, Andrés Rodrigo </td>
-    <td style="padding: 2px 20px;">202312557</td>
+    <td style="padding: 2px 20px;">U202312557</td>
   </tr>
 </table>
 
