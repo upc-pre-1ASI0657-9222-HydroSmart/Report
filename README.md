@@ -28,9 +28,9 @@ El objetivo de este análisis es conocer a los competidores del mercado de gesti
 	<tr>
 		<th>Aspecto</th>
 		<th>HydroSmart</th>
-		<th>Hydrao</th>
-		<th>Dropcountr</th>
-		<th>Yakumetro</th>
+		<th>Hydrao<br><img src="images/hydraologo.png" width="40" height="40" alt="Logo de Hydrao"></th>
+		<th>Dropcountr<br><img src="images/dropcountrlogo.png" width="40" height="40" alt="Logo de Dropcountr"></th>
+		<th>Yakumetro<br><img src="images/yakumetrologo.png" width="40" height="40" alt="Logo de Yakumetro"></th>
 	</tr>
 	<tr>
 		<td><b>Overview</b></td>
@@ -200,6 +200,10 @@ Aunque conoce prácticas básicas de ahorro, considera que no son suficientes pa
 - Ubicación: Jesús María, Lima
 - Duración: 8 minutos y 43 segundos
 
+<div align="center">
+<img src="images/img.png" alt="Entrevista de Paul Garcia Newman" width="500">
+</div>
+
 Paul trabaja en el rubro textil y reside en una vivienda de 120 m² con un pequeño jardín frontal. Riega sus áreas verdes de forma tradicional mediante una manguera durante las noches. Aunque considera normal su consumo para las cuatro personas que habitan el hogar, anteriormente tuvo fugas difíciles de detectar en inodoros y problemas con medidores defectuosos que le generaron gastos innecesarios.
 
 Le interesa una solución que muestre el consumo en tiempo real, compare el gasto diario con el recibo mensual y envíe alertas ante consumos inusualmente altos. También considera clave convertir los metros cúbicos consumidos directamente a soles para entender el impacto económico día a día.
@@ -224,6 +228,10 @@ También valora un área informativa con consejos, recordatorios e incentivos. E
 - Ubicación: Jesús María, Lima
 - Duración: 9 minutos y 47 segundos
 
+<div align="center">
+<img src="images/entrevista2segmento2.png" alt="Entrevista de Stephano Espinoza Cueva" width="500">
+</div>
+
 Stephano es estudiante de la Universidad Peruana de Ciencias Aplicadas y alquila un cuarto junto a un compañero cerca de su centro de estudios. Al vivir de manera independiente, considera importante optimizar sus gastos. Aunque cree que su consumo es eficiente, ha observado sorpresas en el recibo, asociadas a pequeños excesos cotidianos.
 
 Considera útil conocer el consumo diario y estimar el monto del recibo mensual. Le interesa una interfaz minimalista, con datos organizados y fáciles de entender, y estaría dispuesto a pagar una suscripción si la aplicación le ayuda a reducir sus gastos.
@@ -234,6 +242,10 @@ Considera útil conocer el consumo diario y estimar el monto del recibo mensual.
 - Edad: 22 años
 - Ubicación: Carabayllo, Lima
 - Duración: 3 minutos y 46 segundos
+
+<div align="center">
+<img src="images/Entrevista_Rodrigo.jpeg" alt="Entrevista de Rodrigo Valencia" width="500">
+</div>
 
 Rodrigo es estudiante y profesional freelance de animación digital. Vive solo, por lo que el control de su presupuesto mensual es importante. Estima que el agua representa aproximadamente el 2% de sus ingresos, entre 20 y 30 soles, aunque ha llegado a pagar recibos inusuales de hasta 40 soles.
 
