@@ -293,3 +293,17 @@ El proceso de Needfinding se centró en comprender las necesidades, hábitos y d
 5. **Metas y recomendaciones:** los usuarios necesitan orientación accionable para reducir el consumo y comprobar su progreso.
 
 En conjunto, los hallazgos evidencian una oportunidad para desarrollar una plataforma que combine monitoreo, alertas, metas y recomendaciones personalizadas. Los propietarios requieren mayor profundidad en el control del hogar y del riego, mientras que los estudiantes necesitan una experiencia directa orientada al presupuesto. Estas necesidades servirán como base para construir los perfiles de usuario, tareas y mapas de experiencia de la siguiente mitad del capítulo.
+
+### 2.3.1. User Personas
+
+En esta fase se elaboraron perfiles ficticios, denominados User Personas, que condensan los rasgos más significativos de los usuarios identificados durante el análisis de las entrevistas aplicadas. Este recurso hace posible traducir los datos obtenidos en representaciones concretas y prácticas, capaces de guiar el proceso de diseño y respaldar las decisiones vinculadas a las funcionalidades y a la experiencia de uso. En el marco del proyecto se establecieron dos perfiles centrales: el primero orientado a dueños de viviendas que cuentan con áreas verdes y el segundo a estudiantes en situación de alquiler.
+
+Anexo Diagrama User Persona: https://goo.su/3jV074Q
+
+**Segmento 1: Propietarios de viviendas con áreas verdes**
+
+[![Santiago-Vela.png](https://i.postimg.cc/150Nbmz6/Santiago-Vela.png)](https://postimg.cc/w7vvmdLT)
+
+**Segmento 2: Estudiantes que alquilan**
+
+[![Arianna-Floress.png](https://i.postimg.cc/HLncJb9q/Arianna-Floress.png)](https://postimg.cc/zLmX6bM7)
