@@ -327,7 +327,7 @@ A partir del estudio de las entrevistas fue posible ordenar las principales acci
 | 10  | Explorar herramientas o alternativas para optimizar el consumo | Occasionally | High | Occasionally | High |
 
 
-### 2.3.4. Empathy Maps.
+### 2.3.3. Empathy Maps.
 
 **Segmento 1: Propietarios de viviendas con áreas verdes**
 
@@ -336,3 +336,33 @@ A partir del estudio de las entrevistas fue posible ordenar las principales acci
 **Segmento 2: Estudiantes que alquilan**
 
 <img src="images/Empathy_mapping_2.png" alt="Empathy_mapping_2.png" width="500">
+
+### 2.3.4. As-Is Scenario Mapping
+
+El As-Is Scenario Mapping permite representar la situación actual de los usuarios antes de la existencia de AquaPulse, describiendo el recorrido que siguen a lo largo de un ciclo mensual de consumo de agua. A diferencia del User Journey Map, este artefacto no se centra en la interacción con el producto, sino en el comportamiento presente del usuario, lo que hace, lo que piensa y lo que siente en cada fase del escenario actual.
+
+Para su elaboración se tomaron como base los hallazgos obtenidos en las entrevistas y en el proceso de needfinding, identificando cuatro fases comunes en ambos segmentos: un periodo de uso cotidiano sin información, un periodo de consumo invisible, el momento en el que llega el recibo y una reacción posterior orientada a corregir el problema. Este análisis permitió reconocer que el principal punto de quiebre ocurre cuando el usuario recibe la factura, es decir, cuando el impacto económico ya es irreversible.
+
+**Segmento 1: Propietarios de viviendas con áreas verdes**
+
+En este segmento, el escenario inicia con el uso cotidiano del agua y el riego del jardín mediante manguera, realizado por tiempo estimado y sin ningún tipo de medición. Durante esta etapa el usuario se muestra despreocupado, ya que asume que su consumo es el habitual para las personas que habitan la vivienda.
+
+La segunda fase corresponde a un periodo de consumo invisible, en el que no dispone de información acumulada sobre su gasto hídrico. El medidor analógico se encuentra fuera de la vivienda y no forma parte de su rutina de revisión, por lo que aparece una sensación de incertidumbre respecto a si está regando de más.
+
+El punto crítico ocurre al recibir el recibo físico, semanas después del consumo. Al comparar el monto con meses anteriores y encontrar un incremento inesperado, la reacción es de sorpresa e indignación, dado que no identifica ningún cambio en sus hábitos que justifique el aumento.
+
+Finalmente, en la fase de búsqueda de la causa, el usuario revisa manualmente caños e inodoros, contacta a un gasfitero o presenta un reclamo por un posible desperfecto del medidor. Al no contar con datos que respalden su diagnóstico, el proceso termina generando frustración e impotencia.
+
+<img src="images/as_is_scenario_map_segmento1.png" alt="as_is_scenario_map_segmento1.png" width="700">
+
+**Segmento 2: Estudiantes que alquilan**
+
+En este segmento, el escenario comienza con la rutina diaria de consumo, donde el uso del agua en actividades como la ducha o el lavado se realiza sin medición alguna. Ocasionalmente la usuaria intenta reducir el tiempo de ducha, pero lo hace sin ninguna referencia objetiva, manteniendo una actitud despreocupada.
+
+La segunda fase corresponde al uso compartido de la vivienda, donde el consumo se distribuye entre varios ocupantes y nadie conoce cuánto utiliza cada uno. Esta ausencia de información individualizada genera confusión y desconcierto sobre el origen real del gasto.
+
+Al llegar el recibo, la usuaria observa un monto superior al esperado y debe repartir el gasto entre todos los ocupantes. Este momento no solo produce sorpresa por el impacto en su presupuesto, sino también tensión en la convivencia, ya que cada persona considera que su consumo fue menor al del resto.
+
+En la última fase, el intento de ahorro se limita a la aplicación de consejos genéricos, como cerrar correctamente los caños o reducir el tiempo de ducha. Al no poder verificar si estas acciones tienen algún efecto medible, la usuaria retoma sus hábitos previos, cerrando el ciclo con una sensación de resignación y desmotivación.
+
+<img src="images/as_is_scenario_map_segmento2.png" alt="as_is_scenario_map_segmento2.png" width="700">
