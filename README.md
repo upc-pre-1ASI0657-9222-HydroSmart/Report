@@ -29,7 +29,7 @@ Ser la plataforma referente en eficiencia hídrica residencial en Latinoamérica
 | (fotito) <br> Hancco Poma, Keyner Iván     | U20221C726       | Ingeniería de Software | (a) |
 | (fotito) <br> Huaman Olivos, Yeira Shari | U202210513        | Ingeniería de Software | (a)               |
 | (fotito) <br> Loechle Arias, Mateo Italo   | U202215004       | Ingeniería de Software |(a)                                     |
-| (fotito) <br> Ortiz Alarcón, Victor Nicolás       | U202312899        | Ingeniería de Software | (a)                                                                                  |
+| <img src="images/nicolas.jpeg" alt="Victor Nicolás Ortiz Alarcón" width="80"> <br> Ortiz Alarcón, Victor Nicolás | U202312899 | Ingeniería de Software | Estudiante de Ingeniería de Software, interesado en el desarrollo de aplicaciones, la programación y la creación de soluciones tecnológicas innovadoras. |
 | (fotito) <br> Torres Lavandera, Andrés Rodrigo    | U202312557        | Ingeniería de Software | (a)                                                                                   |
 
 
