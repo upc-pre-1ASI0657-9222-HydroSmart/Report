@@ -238,3 +238,46 @@ Considera útil conocer el consumo diario y estimar el monto del recibo mensual.
 Rodrigo es estudiante y profesional freelance de animación digital. Vive solo, por lo que el control de su presupuesto mensual es importante. Estima que el agua representa aproximadamente el 2% de sus ingresos, entre 20 y 30 soles, aunque ha llegado a pagar recibos inusuales de hasta 40 soles.
 
 Considera que visualizar el consumo en tiempo real le permitiría proyectar el monto del recibo y controlar sus hábitos. Para él, las alertas de consumo excesivo son fundamentales. Prefiere una interfaz simple y directa, sin exceso de anuncios, y ve la suscripción como una inversión para evitar cobros excesivos.
+
+### 2.2.3. Análisis de entrevistas
+
+El análisis de las entrevistas permitió identificar patrones comunes y diferencias entre los propietarios de viviendas con áreas verdes y los estudiantes que alquilan. Ambos segmentos reconocen la importancia de controlar el consumo, pero sus motivaciones y expectativas de uso son diferentes.
+
+| Segmento | Características | Objetivos comunes | Características subjetivas comunes |
+|----------|-----------------|------------------|-----------------------------------|
+| Propietarios de viviendas con áreas verdes | Personas de 30 a 60 años, con vivienda propia, jardín o áreas verdes. Utilizan smartphones, laptops y, en algunos casos, dispositivos inteligentes. | Controlar el consumo, optimizar el riego, prevenir fugas, reducir costos e incorporar tecnología en la gestión del hogar. | Motivación: tener control y evitar gastos innecesarios. Frustración: detectar fugas tarde y no contar con información clara sobre el consumo. |
+| Estudiantes que alquilan | Personas de 18 a 28 años, con presupuesto limitado, que viven solos o comparten vivienda. Utilizan smartphones, aplicaciones móviles y redes sociales. | Reducir gastos, controlar el consumo, evitar conflictos con compañeros, adoptar hábitos de ahorro y utilizar soluciones simples. | Motivación: ahorrar dinero y mejorar la convivencia. Frustración: no saber dónde se produce el gasto y recibir cobros inesperados. |
+
+Los propietarios valoran principalmente la prevención de fugas, el control del riego y la conversión del consumo a un costo económico. Los estudiantes priorizan una interfaz sencilla, alertas oportunas, proyecciones del recibo y herramientas que les permitan mantenerse dentro de su presupuesto.
+
+## 2.3. Needfinding
+
+El proceso de Needfinding se centró en comprender las necesidades, hábitos y dificultades de los dos segmentos objetivo: propietarios de viviendas con áreas verdes y estudiantes que alquilan. A partir de las entrevistas se identificaron comportamientos compartidos y diferencias importantes en la forma en que cada grupo gestiona y percibe el consumo de agua.
+
+### Necesidades identificadas en propietarios
+
+- Visualizar el consumo de agua en tiempo real.
+- Recibir alertas cuando se detecten fugas o consumos inusualmente altos.
+- Controlar el consumo de las áreas verdes y de dispositivos de riego.
+- Comparar el consumo diario con el recibo mensual.
+- Convertir los metros cúbicos consumidos a soles.
+- Recibir información clara para prevenir gastos innecesarios.
+
+### Necesidades identificadas en estudiantes que alquilan
+
+- Consultar el consumo desde el celular de forma rápida.
+- Obtener una estimación del monto del recibo al finalizar el mes.
+- Establecer límites o metas de consumo según su presupuesto.
+- Recibir recordatorios y alertas que ayuden a cambiar hábitos.
+- Acceder a una interfaz minimalista, organizada y fácil de entender.
+- Evitar anuncios excesivos y funciones que dificulten el uso.
+
+### Hallazgos priorizados
+
+1. **Visibilidad en tiempo real:** ambos segmentos necesitan conocer cuánto consumen antes de recibir el recibo mensual.
+2. **Prevención de fugas:** los propietarios reportan experiencias directas con fugas que fueron detectadas tarde, mientras que los estudiantes necesitan alertas para evitar cobros inesperados.
+3. **Traducción a impacto económico:** mostrar el consumo en soles facilita que los usuarios comprendan el valor de modificar sus hábitos.
+4. **Simplicidad de uso:** la interfaz debe ser rápida, minimalista y comprensible para favorecer el uso constante.
+5. **Metas y recomendaciones:** los usuarios necesitan orientación accionable para reducir el consumo y comprobar su progreso.
+
+En conjunto, los hallazgos evidencian una oportunidad para desarrollar una plataforma que combine monitoreo, alertas, metas y recomendaciones personalizadas. Los propietarios requieren mayor profundidad en el control del hogar y del riego, mientras que los estudiantes necesitan una experiencia directa orientada al presupuesto. Estas necesidades servirán como base para construir los perfiles de usuario, tareas y mapas de experiencia de la siguiente mitad del capítulo.
