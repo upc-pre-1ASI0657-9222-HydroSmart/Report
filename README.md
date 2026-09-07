@@ -325,3 +325,14 @@ A partir del estudio de las entrevistas fue posible ordenar las principales acci
 | 8   | Contrastar el consumo de un mes con otro | Sometimes | Medium | Frequent | Medium |
 | 9   | Vigilar el gasto de agua en la vivienda compartida | Frequent | High | Frequent | High |
 | 10  | Explorar herramientas o alternativas para optimizar el consumo | Occasionally | High | Occasionally | High |
+
+
+### 2.3.4. Empathy Maps.
+
+**Segmento 1: Propietarios de viviendas con áreas verdes**
+
+<img src="images/Empathy_mapping_1.png" alt="Empathy_mapping_1.png" width="500">
+
+**Segmento 2: Estudiantes que alquilan**
+
+<img src="images/Empathy_mapping_2.png" alt="Empathy_mapping_2.png" width="500">
