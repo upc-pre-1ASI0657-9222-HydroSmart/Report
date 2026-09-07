@@ -2,7 +2,23 @@
 
 ## 3.1. To-Be Scenario Mapping
 
+A partir de los hallazgos del User Journey Mapping (As-Is) y del Empathy Mapping, se construyó el To-Be Scenario Mapping para representar cómo cambiaría la experiencia de cada segmento una vez que HydroSmart forme parte de su rutina diaria. Mientras que en el escenario actual los usuarios descubren los problemas de consumo de forma tardía (al recibir el recibo físico) y actúan de manera reactiva, el escenario futuro propuesto se centra en la anticipación: monitoreo en tiempo real, alertas inmediatas y recomendaciones personalizadas que permiten actuar antes de que el gasto se vuelva un problema.
 
+**Segmento objetivo #1: Propietarios de viviendas con áreas verdes**
+
+| Phases | Monitoreo en tiempo real (Panel de consumo) | Alerta de anomalía o fuga | Acción correctiva (Riego y mantenimiento) | Evaluación de ahorro |
+|---|---|---|---|---|
+| **Doing** | Ingresa al dashboard de HydroSmart y revisa el consumo de agua por zona (riego, cocina, baños) junto con la proyección de su recibo mensual, sin esperar a que llegue el recibo físico. | Recibe una notificación push apenas el sistema detecta un consumo fuera de lo normal (posible fuga en inodoro o exceso de riego) y visualiza el dispositivo o zona exacta que lo genera. | Ajusta el horario o duración del riego automático, configura umbrales personalizados de alerta y consulta la conversión de su consumo en metros cúbicos a soles para dimensionar el impacto. | Revisa el reporte histórico y compara el consumo real registrado en la app contra el monto de su recibo físico para confirmar el ahorro logrado en el periodo. |
+| **Thinking** | "Ya no tengo que esperar hasta fin de mes para saber si estoy gastando de más." | "Qué bueno que me avisó a tiempo, antes esto lo notaba semanas después con el recibo." | "Ahora puedo corregir el riego y evitar que esta fuga siga generando gasto." | "Por fin puedo comprobar en soles cuánto estoy ahorrando realmente." |
+| **Feeling** | Tranquilidad, control | Alivio, urgencia resuelta | Confianza, determinación | Satisfacción, motivación |
+
+**Segmento objetivo #2: Estudiantes que alquilan**
+
+| Phases | Consulta rápida del consumo diario | Alerta de consumo elevado | Ajuste de hábitos con recomendaciones | Revisión de proyección a fin de mes |
+|---|---|---|---|---|
+| **Doing** | Abre la app desde su celular para revisar en segundos cuánta agua ha consumido en el día y cómo va frente a su meta de ahorro personal. | Recibe una alerta cuando su consumo diario supera el límite que definió según su presupuesto, sin necesidad de esperar el recibo compartido con sus compañeros de cuarto. | Consulta la sección de consejos y recordatorios de la app y aplica pequeños cambios (duchas más cortas, cerrar llaves) para mantenerse dentro de su meta. | Revisa la proyección estimada del monto a pagar a fin de mes y compara su progreso semana a semana. |
+| **Thinking** | "En unos segundos ya sé si voy bien o mal con mi consumo, sin complicarme." | "Mejor que me avise ahora a que me lleve una sorpresa en el recibo." | "Con estos recordatorios es más fácil no olvidarme de ahorrar." | "Ya sé más o menos cuánto me va a tocar pagar, así puedo organizarme." |
+| **Feeling** | Comodidad, curiosidad | Alerta, previsión | Enfoque, motivación | Alivio, confianza |
 
 ## 3.2. User Stories
 
