@@ -120,3 +120,121 @@ Frente a Dropcountr, la estrategia consiste en desarrollar alianzas tempranas co
 Respecto a Yakumetro, la estrategia no es competir directamente, sino diferenciarse por la profundidad de la solución. Yakumetro funciona como un simulador estático, mientras que HydroSmart ofrece gestión activa, alertas ante anomalías y metas de ahorro personalizadas. La comunicación del producto debe mostrar a HydroSmart como el siguiente paso para quienes necesitan pasar de la consulta a la gestión continua del consumo.
 
 La táctica central debe ser crecer mediante comunidad y contenido educativo. Las redes sociales pueden explicar el costo real de las fugas, mostrar hábitos de ahorro y convertir a los usuarios satisfechos en embajadores de la aplicación. En paralelo, las alianzas institucionales deben aportar acceso a datos reales y credibilidad frente a un mercado que todavía no conoce ampliamente este tipo de soluciones.
+
+## 2.2. Entrevistas
+
+Con el objetivo de conocer cómo los usuarios gestionan actualmente su consumo de agua y qué dificultades enfrentan, se realizaron entrevistas dirigidas a dos grupos principales: propietarios de viviendas con áreas verdes y estudiantes que alquilan. Para cada segmento se diseñaron preguntas abiertas que permitieran comprender sus hábitos, el nivel de control sobre el gasto y su interés en utilizar soluciones tecnológicas para optimizar el uso del agua.
+
+La información recopilada se organizó para identificar comportamientos recurrentes, problemas comunes y necesidades no cubiertas. Este análisis permitió establecer criterios para el desarrollo de HydroSmart, asegurando que la solución responda a situaciones reales y aporte valor tanto en el ahorro económico como en la gestión eficiente del recurso hídrico.
+
+### 2.2.1. Diseño de entrevistas
+
+Los datos básicos de los entrevistados fueron registrados mediante un formulario disponible en el siguiente enlace: [Formulario de entrevistas](https://docs.google.com/forms/d/e/1FAIpQLSeASAP7gDjpULkffOBbjQFhAo4xq-rRJhzjmd_Y2vJmM5wfVQ/viewform).
+
+**Entrevistas del segmento 1: Propietarios de viviendas con áreas verdes**
+
+1. ¿Podría contarnos un poco sobre su ocupación y su tipo de vivienda actual?
+2. ¿Cuenta con jardín o áreas verdes en su hogar? ¿Cómo gestiona actualmente el riego?
+3. ¿Qué tan importante es para usted el control del consumo de agua en su hogar?
+4. ¿Con qué frecuencia revisa su recibo de agua y qué decisiones toma a partir de él?
+5. ¿Ha tenido problemas con fugas o consumos elevados de agua? ¿Cómo los detectó?
+6. ¿Cuáles son las mayores frustraciones que tiene respecto al consumo de agua en su vivienda?
+7. ¿Ha utilizado alguna herramienta o tecnología para monitorear su consumo de agua?
+8. ¿Qué aspectos considera más importantes para optimizar el uso del agua en su hogar?
+9. Si existiera una aplicación que le permita ver su consumo en tiempo real, ¿cómo cree que la usaría?
+10. ¿Le resultaría útil recibir alertas cuando su consumo de agua sea inusualmente alto?
+11. ¿Qué tipo de información le gustaría ver en una aplicación de este tipo?
+12. ¿Qué lo motivaría a usar una herramienta para controlar su consumo de agua de manera constante?
+13. ¿Qué preocupaciones tendría al usar una solución tecnológica para gestionar el agua en su hogar?
+14. ¿Estaría dispuesto a pagar por una solución que le ayude a reducir su consumo de agua? ¿Por qué?
+
+**Entrevistas del segmento 2: Estudiantes que alquilan**
+
+1. ¿Podría compartirnos su edad, a qué se dedica y su situación actual de vivienda?
+2. ¿Cómo maneja su presupuesto mensual, especialmente en servicios como agua?
+3. ¿Qué tan consciente es de su consumo de agua en el día a día?
+4. ¿Ha tenido alguna sorpresa con el recibo de agua? ¿Cómo reaccionó?
+5. ¿Cuáles son sus principales frustraciones respecto al gasto de agua?
+6. ¿Qué tan seguido piensa en ahorrar agua o reducir su consumo?
+7. ¿Ha intentado cambiar sus hábitos para gastar menos agua? ¿Cómo?
+8. Si pudiera ver su consumo de agua en tiempo real desde su celular, ¿cree que cambiaría algo en su rutina?
+9. ¿Le ayudaría recibir alertas cuando esté gastando más agua de lo normal?
+10. ¿Qué tipo de información le gustaría ver en una app de consumo de agua?
+11. ¿Cómo debería ser una aplicación para que realmente la use: simple, rápida u otra característica?
+12. ¿Qué cosas le harían dejar de usar una app de este tipo?
+13. ¿Qué tan dispuesto estaría a cambiar sus hábitos para ahorrar dinero en agua?
+14. ¿Estaría dispuesto a pagar por una app que le ayude a controlar su consumo y ahorrar dinero? ¿Por qué?
+
+### 2.2.2. Registro de entrevistas
+
+Las entrevistas completas se encuentran en el registro identificado como [HydroSmart - entrevistas](https://shorturl.at/p85wb).
+
+#### Segmento 1: Propietarios de viviendas con áreas verdes
+
+**Entrevista 1: Diego Andrey Paredes Rey de Castro**
+
+- Instante de inicio: 0 minutos y 2 segundos
+- Edad: 32 años
+- Ubicación: Miraflores, Lima
+- Duración: 4 minutos y 42 segundos
+
+Diego es propietario de una vivienda con áreas verdes, las cuales riega de manera interdiaria. Actualmente no presenta mayores molestias relacionadas con el consumo de agua ni con el costo del servicio. Sin embargo, le gustaría tener un mejor control del uso del agua mediante notificaciones en tiempo real que avisen si ocurre una fuga o si el consumo se eleva más de lo normal.
+
+También muestra interés en visualizar el consumo de elementos específicos, como las llaves, y en conocer cuánto consume su regadora inteligente durante el riego. Aunque no tiene una necesidad urgente, está abierto a una solución tecnológica preventiva que le ayude a monitorear y optimizar el consumo.
+
+**Entrevista 2: Yusnury Vivar**
+
+- Instante de inicio: 4 minutos y 44 segundos
+- Edad: 30 años
+- Ubicación: San Miguel, Lima
+- Duración: 4 minutos y 29 segundos
+
+Yusnury ha enfrentado inconvenientes relacionados con fugas que no detectó a tiempo y que identificó recién al recibir un recibo mensual más elevado de lo habitual. En su vivienda cuenta con áreas verdes que riega diariamente, lo que también influye en su consumo general.
+
+Aunque conoce prácticas básicas de ahorro, considera que no son suficientes para tener un control real. Por ello, se muestra interesada en una herramienta que le permita monitorear con precisión, prevenir fugas y reducir gastos.
+
+**Entrevista 3: Paul Garcia Newman**
+
+- Instante de inicio: 9 minutos y 14 segundos
+- Edad: 46 años
+- Ubicación: Jesús María, Lima
+- Duración: 8 minutos y 43 segundos
+
+Paul trabaja en el rubro textil y reside en una vivienda de 120 m² con un pequeño jardín frontal. Riega sus áreas verdes de forma tradicional mediante una manguera durante las noches. Aunque considera normal su consumo para las cuatro personas que habitan el hogar, anteriormente tuvo fugas difíciles de detectar en inodoros y problemas con medidores defectuosos que le generaron gastos innecesarios.
+
+Le interesa una solución que muestre el consumo en tiempo real, compare el gasto diario con el recibo mensual y envíe alertas ante consumos inusualmente altos. También considera clave convertir los metros cúbicos consumidos directamente a soles para entender el impacto económico día a día.
+
+#### Segmento 2: Estudiantes que alquilan
+
+**Entrevista 1: Camila Luciana Diaz Diaz**
+
+- Instante de inicio: 18 minutos
+- Edad: 18 años
+- Ubicación: San Borja, Lima
+- Duración: 7 minutos y 43 segundos
+
+Camila vive con sus hermanas y no es quien paga directamente los recibos, aunque reconoce que sus hábitos afectan la economía familiar. No piensa constantemente en el consumo, pero sus padres le han llamado la atención por excesos en actividades cotidianas. Intenta ahorrar reduciendo el tiempo de ducha y considera que una aplicación debería ser rápida, simple e intuitiva.
+
+También valora un área informativa con consejos, recordatorios e incentivos. Estaría dispuesta a pagar después de un periodo de uso si percibe que la aplicación genera un beneficio real.
+
+**Entrevista 2: Stephano Espinoza Cueva**
+
+- Instante de inicio: 25 minutos y 40 segundos
+- Edad: 21 años
+- Ubicación: Jesús María, Lima
+- Duración: 9 minutos y 47 segundos
+
+Stephano es estudiante de la Universidad Peruana de Ciencias Aplicadas y alquila un cuarto junto a un compañero cerca de su centro de estudios. Al vivir de manera independiente, considera importante optimizar sus gastos. Aunque cree que su consumo es eficiente, ha observado sorpresas en el recibo, asociadas a pequeños excesos cotidianos.
+
+Considera útil conocer el consumo diario y estimar el monto del recibo mensual. Le interesa una interfaz minimalista, con datos organizados y fáciles de entender, y estaría dispuesto a pagar una suscripción si la aplicación le ayuda a reducir sus gastos.
+
+**Entrevista 3: Rodrigo Valencia**
+
+- Instante de inicio: 35 minutos y 25 segundos
+- Edad: 22 años
+- Ubicación: Carabayllo, Lima
+- Duración: 3 minutos y 46 segundos
+
+Rodrigo es estudiante y profesional freelance de animación digital. Vive solo, por lo que el control de su presupuesto mensual es importante. Estima que el agua representa aproximadamente el 2% de sus ingresos, entre 20 y 30 soles, aunque ha llegado a pagar recibos inusuales de hasta 40 soles.
+
+Considera que visualizar el consumo en tiempo real le permitiría proyectar el monto del recibo y controlar sus hábitos. Para él, las alertas de consumo excesivo son fundamentales. Prefiere una interfaz simple y directa, sin exceso de anuncios, y ve la suscripción como una inversión para evitar cobros excesivos.
