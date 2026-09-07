@@ -110,3 +110,13 @@ El objetivo de este análisis es conocer a los competidores del mercado de gesti
 		<td>Cambios presupuestarios o de gestión podrían retrasar su evolución tecnológica.</td>
 	</tr>
 </table>
+
+### 2.1.2. Estrategias y tácticas frente a competidores
+
+HydroSmart cuenta con una ventaja clara frente a sus competidores más cercanos: es una solución completamente digital, sin hardware, diseñada específicamente para el contexto latinoamericano. Frente a Hydrao, que requiere invertir más de 70 euros en un dispositivo físico, HydroSmart elimina esa barrera con su modelo freemium y facilita el acceso a los segmentos B y C del mercado peruano.
+
+Frente a Dropcountr, la estrategia consiste en desarrollar alianzas tempranas con Sedapal y otros proveedores de agua del Perú. Una integración con datos de consumo locales permitiría replicar una de las principales fortalezas de Dropcountr, pero adaptada a las necesidades y tarifas del contexto peruano.
+
+Respecto a Yakumetro, la estrategia no es competir directamente, sino diferenciarse por la profundidad de la solución. Yakumetro funciona como un simulador estático, mientras que HydroSmart ofrece gestión activa, alertas ante anomalías y metas de ahorro personalizadas. La comunicación del producto debe mostrar a HydroSmart como el siguiente paso para quienes necesitan pasar de la consulta a la gestión continua del consumo.
+
+La táctica central debe ser crecer mediante comunidad y contenido educativo. Las redes sociales pueden explicar el costo real de las fugas, mostrar hábitos de ahorro y convertir a los usuarios satisfechos en embajadores de la aplicación. En paralelo, las alianzas institucionales deben aportar acceso a datos reales y credibilidad frente a un mercado que todavía no conoce ampliamente este tipo de soluciones.
