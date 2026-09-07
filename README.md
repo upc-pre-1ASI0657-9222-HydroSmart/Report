@@ -307,3 +307,21 @@ Anexo Diagrama User Persona: https://goo.su/3jV074Q
 **Segmento 2: Estudiantes que alquilan**
 
 [![Arianna-Floress.png](https://i.postimg.cc/HLncJb9q/Arianna-Floress.png)](https://postimg.cc/zLmX6bM7)
+
+### 2.3.2. User Task Matrix
+
+A partir del estudio de las entrevistas fue posible ordenar las principales acciones de los usuarios dentro de una matriz comparativa que evidencia el modo en que se relacionan con el consumo de agua en su rutina diaria. Allí se especifican las tareas más habituales de cada segmento, acompañadas de la periodicidad con que se ejecutan y del peso que tienen para cada perfil. Esta mirada ayuda a comprender tanto las diferencias como los puntos en común entre ambos usuarios, y funciona como insumo para tomar decisiones más precisas en la etapa de diseño, priorizando aquello que genera un valor real en la experiencia.
+
+| No. | Task | Santiago Vela |  | Arianna Flores |  |
+|-----|------|---------------|--------------|----------------|--------------|
+|     |      | Frequency     | Importance   | Frequency      | Importance   |
+| 1   | Verificar el gasto de agua reflejado en la boleta | Monthly | High | Monthly | Medium |
+| 2   | Regular el empleo de agua durante las rutinas cotidianas | Weekly | High | Occasionally | Medium |
+| 3   | Descubrir posibles filtraciones dentro de la vivienda | Weekly | High | Occasionally | High |
+| 4   | Administrar el riego de los espacios verdes | Frequent | High | Rarely | Low |
+| 5   | Reconocer los periodos de consumo más elevado | Weekly | High | Occasionally | Medium |
+| 6   | Poner en práctica hábitos de ahorro hídrico | Frequent | High | Occasionally | Medium |
+| 7   | Fijar metas de ahorro | Sometimes | High | Occasionally | Medium |
+| 8   | Contrastar el consumo de un mes con otro | Sometimes | Medium | Frequent | Medium |
+| 9   | Vigilar el gasto de agua en la vivienda compartida | Frequent | High | Frequent | High |
+| 10  | Explorar herramientas o alternativas para optimizar el consumo | Occasionally | High | Occasionally | High |
