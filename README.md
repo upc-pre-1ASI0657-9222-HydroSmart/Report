@@ -130,3 +130,5 @@ Business Assumptions:
 
 - Creemos que si proporcionamos a los jóvenes arrendatarios metas de ahorro personalizadas y alertas de consumo adaptadas a su presupuesto, entonces adoptarán hábitos de consumo más responsables. Sabremos que estamos en lo correcto cuando los usuarios del segmento inquilinos logren mantenerse dentro de su meta de consumo mensual durante al menos dos meses consecutivos.
 
+#### 1.2.2.4. Lean UX Canvas.
+![LeanUxCanvas](https://i.postimg.cc/g0nSZtPJ/leanuxcanvas.png)
