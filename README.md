@@ -132,3 +132,13 @@ Business Assumptions:
 
 #### 1.2.2.4. Lean UX Canvas.
 ![LeanUxCanvas](https://i.postimg.cc/g0nSZtPJ/leanuxcanvas.png)
+
+## 1.3. Segmentos Objetivos.
+
+|    | Segmento 1 | Segmento 2 |
+|----|------------|------------|
+| **Variables** | Propietarios de viviendas con áreas verdes | Estudiantes y jóvenes arrendatarios |
+| **Geográfica** | Ubicados principalmente en zonas urbanas y suburbanas, en distritos residenciales con viviendas que cuentan con jardines o áreas verdes. | Ubicados en zonas urbanas cercanas a universidades o centros de trabajo, en distritos con alta densidad de alquiler de habitaciones o departamentos. |
+| **Demográfica** | Edad: 30-60 años; Género: Mixto; Educación: Secundaria completa o superior; Ingresos: Medio a alto; Estado civil: Familias o parejas con vivienda propia. | Edad: 18-30 años; Género: Mixto; Educación: Estudiantes universitarios o técnicos; Ingresos: Bajo a medio; Estado civil: Solteros. |
+| **Psicológica** | Orientados al ahorro y mantenimiento del hogar. Valoran la eficiencia, la sostenibilidad y el control de gastos. Tienen interés en soluciones prácticas que optimicen recursos y reduzcan desperdicios. | Enfocados en el ahorro y el control de su presupuesto mensual. Buscan soluciones simples, accesibles y fáciles de usar. Tienen una actitud práctica hacia la tecnología y valoran herramientas que les ayuden a evitar gastos inesperados. |
+| **Función de comportamiento** | Uso frecuente de servicios del hogar relacionados al mantenimiento (agua, riego, limpieza). Adoptan tecnología si es útil y fácil de usar. Buscan reducir costos operativos y prevenir problemas como fugas o consumo excesivo. Se frustran por la falta de control y visibilidad del gasto. | Uso diario de aplicaciones móviles. Alta adopción de soluciones digitales si son intuitivas. Se frustran por facturas inesperadas o falta de información clara sobre su consumo. Su objetivo es controlar gastos, evitar excesos y mantenerse dentro de su presupuesto. |
