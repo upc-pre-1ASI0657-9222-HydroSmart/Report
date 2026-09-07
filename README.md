@@ -72,7 +72,7 @@ A partir de los hallazgos del User Journey Mapping (As-Is) y del Empathy Mapping
 | TS08 | Endpoint de configuración de notificaciones | Como developer, quiero consumir un endpoint para actualizar las preferencias de notificación del usuario. | **Escenario 1: Configuración actualizada.** Given que el developer envía una solicitud PUT con los nuevos ajustes, When el servidor procesa la solicitud, Then retorna un status 200 confirmando los cambios. <br><br> **Escenario 2: Datos inválidos.** Given que los datos no cumplen el formato requerido, When el servidor procesa la solicitud, Then retorna un status 400 con el detalle del error. | EP09 |
 | TS09 | Endpoint de gestión de unidades | Como developer, quiero consumir endpoints para registrar y consultar unidades de un arrendador. | **Escenario 1: Unidad registrada.** Given que el developer envía una solicitud POST con los datos de la unidad, When el servidor procesa la solicitud, Then retorna un status 201 con la unidad creada. <br><br> **Escenario 2: Listado de unidades.** Given que el developer envía una solicitud GET con un token válido, When el servidor procesa la solicitud, Then retorna un status 200 con el listado de unidades del usuario. | EP09|
 
-## 3.2. Impact Mapping.
+## 3.3. Impact Mapping.
 
 El Impact Mapping es una herramienta estratégica que permite vincular los objetivos del negocio con las acciones de los usuarios y las funcionalidades del producto digital. A través de una representación visual en forma de estructura jerárquica, facilita entender cómo las metas planteadas se traducen en comportamientos específicos de los usuarios y, a su vez, en características concretas dentro de la solución.
 
@@ -100,7 +100,7 @@ Este objetivo representa una etapa clave para validar la propuesta de valor del 
 Asimismo, este objetivo se relaciona directamente con los comportamientos de los segmentos identificados, quienes, mediante el uso constante de la aplicación para monitorear su consumo de agua y mejorar sus hábitos, contribuyen al posicionamiento de la solución. De esta manera, se busca evidenciar que la aplicación no solo es funcional, sino que también aporta valor real en la optimización del consumo, incentivando su uso continuo y su recomendación dentro de su entorno cercano.
 
 <div align="center">
-  <img src="images/impact_map2.png" alt="Impact-Mapping-BG1" width="601">
+  <img src="images/Impact_map2.png" alt="Impact-Mapping-BG1" width="601">
 </div>
 
 **Business Goal 2: Optimizar el 70 % del monitoreo del consumo de agua en 6 meses y aumentar la retención de usuarios en un 25 % en 9 meses**
@@ -119,3 +119,38 @@ En este sentido, las funcionalidades asociadas, como la automatización de alert
 
 ## 3.4. Product Backlog
 
+
+| # Orden | User Story Id | Título | Descripción | Story Points (1 / 2 / 3 / 5 / 8) |
+|---------|--------------|--------|-------------|-----------------------------------|
+| 1 | US18 | Visualización de propuesta de valor | Como visitante, quiero ver claramente qué hace HydroSmart al ingresar a la landing page para entender si el producto resuelve mi problema. | 1 |
+| 2 | US19 | Visualización de funcionalidades | Como visitante, quiero conocer las funcionalidades principales de la app para evaluar si se adapta a mis necesidades antes de registrarme. | 1 |
+| 3 | US20 | Visualización de segmentos objetivo | Como visitante del segmento propietario, quiero identificar si HydroSmart está diseñado para mi perfil para decidir si me registro. | 1 |
+| 4 | US21 | Navegación por secciones | Como visitante, quiero navegar fácilmente entre las secciones de la landing page para encontrar la información que necesito sin perderme. | 2 |
+| 5 | US23 | Visualización en dispositivos móviles | Como visitante que accede desde su celular, quiero que la landing page se adapte a mi pantalla para poder leer el contenido sin dificultad. | 2 |
+| 6 | US22 | Acceso al registro desde la landing page | Como visitante, quiero acceder al formulario de registro desde la landing page para comenzar a usar HydroSmart sin tener que buscar el enlace. | 1 |
+| 7 | US04 | Visualización de consumo en tiempo real | Como usuario, quiero visualizar mi consumo de agua en tiempo real para reducir la incertidumbre sobre mi gasto y poder tomar decisiones inmediatas. | 5 |
+| 8 | US05 | Claridad del consumo en el dashboard | Como inquilino, quiero visualizar mi consumo de agua de forma clara y entendible en el dashboard para interpretar fácilmente mi gasto sin necesidad de conocimientos técnicos. | 3 |
+| 9 | US06 | Historial de consumo | Como usuario, quiero revisar mi historial de consumo para identificar patrones y entender cómo varía mi gasto en el tiempo. | 5 |
+| 10 | US07 | Proyección de gasto mensual | Como usuario, quiero ver una proyección de mi gasto mensual para anticiparme al monto del recibo y planificar mejor mi presupuesto. | 5 |
+| 11 | US08 | Alerta de consumo inusual | Como usuario, quiero recibir alertas cuando mi consumo sea inusual para poder actuar a tiempo y evitar gastos excesivos. | 3 |
+| 12 | US09 | Alerta de posible fuga | Como propietario, quiero recibir una alerta cuando el sistema detecte una posible fuga para tomar acción antes de que el desperdicio sea irreversible. | 5 |
+| 13 | US14 | Establecer meta de ahorro | Como inquilino, quiero establecer una meta de consumo mensual para controlar mi gasto y evitar exceder mi presupuesto. | 3 |
+| 14 | US15 | Recomendaciones personalizadas | Como usuario, quiero recibir recomendaciones de ahorro basadas en mi consumo para adoptar hábitos más responsables sin necesidad de ser un experto. | 5 |
+| 15 | US16 | Comparativo de consumo semanal | Como usuario, quiero comparar mi consumo entre semanas para evaluar si mis hábitos están mejorando con el tiempo. | 3 |
+| 16 | US11 | Registro de unidades | Como arrendador, quiero registrar las unidades de mi inmueble en la plataforma para gestionar el consumo de cada una de forma independiente. | 3 |
+| 17 | US12 | Monitoreo por unidad | Como arrendador, quiero monitorear el consumo de agua de cada unidad de mi inmueble para identificar inquilinos con consumo excesivo. | 5 |
+| 18 | US13 | Reporte de consumo por unidad | Como arrendador, quiero generar reportes de consumo por unidad para tener evidencia documentada ante disputas con inquilinos. | 5 |
+| 19 | US10 | Configuración de notificaciones | Como usuario, quiero configurar mis notificaciones para recibir solo la información que sea relevante para mí. | 2 |
+| 20 | US01 | Registro de usuario | Como usuario nuevo, quiero registrarme indicando mi tipo de perfil para acceder a las funcionalidades adaptadas a mis necesidades de consumo de agua. | 3 |
+| 21 | US02 | Inicio de sesión | Como usuario registrado, quiero iniciar sesión de forma segura para acceder a mi información de consumo sin riesgo a que otros accedan a mis datos. | 3 |
+| 22 | US03 | Cierre de sesión | Como usuario autenticado, quiero cerrar sesión para proteger mis datos en dispositivos compartidos. | 1 |
+| 23 | US17 | Gestión de privacidad de datos | Como usuario, quiero saber cómo se almacenan y protegen mis datos personales para sentirme seguro al usar la plataforma. | 2 |
+| 24 | TS01 | Endpoint de registro de usuario | Como developer, quiero consumir un endpoint de registro para crear nuevos usuarios en el sistema. | 3 |
+| 25 | TS02 | Endpoint de autenticación | Como developer, quiero consumir un endpoint de login para autenticar usuarios y obtener un token de acceso seguro. | 3 |
+| 26 | TS03 | Endpoint de consumo en tiempo real | Como developer, quiero consumir un endpoint que retorne el consumo actual del usuario para mostrarlo en el dashboard. | 5 |
+| 27 | TS04 | Endpoint de historial de consumo | Como developer, quiero consumir un endpoint que retorne el historial de consumo por período para mostrarlo en gráficos. | 3 |
+| 28 | TS05 | Endpoint de alertas | Como developer, quiero consumir un endpoint que registre y retorne las alertas generadas para notificar al usuario. | 3 |
+| 29 | TS06 | Endpoint de metas de ahorro | Como developer, quiero consumir un endpoint para crear y consultar las metas de ahorro del usuario. | 2 |
+| 30 | TS07 | Endpoint de cierre de sesión | Como developer, quiero consumir un endpoint para cerrar la sesión del usuario de forma segura. | 1 |
+| 31 | TS08 | Endpoint de configuración de notificaciones | Como developer, quiero consumir un endpoint para actualizar las preferencias de notificación del usuario. | 2 |
+| 32 | TS09 | Endpoint de gestión de unidades | Como developer, quiero consumir endpoints para registrar y consultar unidades de un arrendador. | 3 |
