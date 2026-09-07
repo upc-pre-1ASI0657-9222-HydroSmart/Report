@@ -72,7 +72,48 @@ A partir de los hallazgos del User Journey Mapping (As-Is) y del Empathy Mapping
 | TS08 | Endpoint de configuración de notificaciones | Como developer, quiero consumir un endpoint para actualizar las preferencias de notificación del usuario. | **Escenario 1: Configuración actualizada.** Given que el developer envía una solicitud PUT con los nuevos ajustes, When el servidor procesa la solicitud, Then retorna un status 200 confirmando los cambios. <br><br> **Escenario 2: Datos inválidos.** Given que los datos no cumplen el formato requerido, When el servidor procesa la solicitud, Then retorna un status 400 con el detalle del error. | EP09 |
 | TS09 | Endpoint de gestión de unidades | Como developer, quiero consumir endpoints para registrar y consultar unidades de un arrendador. | **Escenario 1: Unidad registrada.** Given que el developer envía una solicitud POST con los datos de la unidad, When el servidor procesa la solicitud, Then retorna un status 201 con la unidad creada. <br><br> **Escenario 2: Listado de unidades.** Given que el developer envía una solicitud GET con un token válido, When el servidor procesa la solicitud, Then retorna un status 200 con el listado de unidades del usuario. | EP09|
 
-## 3.3. Impact Map
+## 3.2. Impact Mapping.
+
+El Impact Mapping es una herramienta estratégica que permite vincular los objetivos del negocio con las acciones de los usuarios y las funcionalidades del producto digital. A través de una representación visual en forma de estructura jerárquica, facilita entender cómo las metas planteadas se traducen en comportamientos específicos de los usuarios y, a su vez, en características concretas dentro de la solución.
+
+En este proyecto, esta metodología se aplicó para organizar de manera coherente la relación entre los objetivos del modelo de negocio, los segmentos de usuarios definidos y las funcionalidades propuestas. Para ello, se consideraron los siguientes elementos:
+
+- Los Business Goals, definidos bajo un enfoque medible y temporal, orientados tanto a la adquisición de usuarios como a su permanencia en la plataforma.
+
+
+- Los actores principales, representados por los segmentos de propietarios de viviendas con áreas verdes y estudiantes que alquilan, definidos a partir de sus necesidades, comportamientos y contexto de uso.
+
+
+- Los impactos esperados, entendidos como los cambios de comportamiento que se busca generar en cada tipo de usuario, como el monitoreo constante del consumo, la adopción de hábitos de ahorro o el uso recurrente de la aplicación.
+
+
+- Los deliverables, que corresponden a las funcionalidades del producto diseñadas para generar dichos impactos, como paneles de monitoreo, alertas inteligentes, recomendaciones personalizadas y sistemas de seguimiento del consumo.
+
+El desarrollo del mapa se realizó bajo un enfoque centrado en el usuario, permitiendo alinear los objetivos del negocio con la experiencia del usuario y las decisiones de diseño, asegurando que la solución responda a necesidades reales y aporte valor tangible.
+
+
+
+**Business Goal 1: Alcanzar 800 usuarios activos en un periodo de 6 meses**
+
+Este objetivo representa una etapa clave para validar la propuesta de valor del producto, enfocándose en la captación inicial de usuarios que permitan medir su aceptación en el mercado. Alcanzar 800 usuarios activos en un periodo de 6 meses no solo establece una meta clara y medible, sino que también busca generar una base sólida de adopción que respalde el crecimiento del producto.
+
+Asimismo, este objetivo se relaciona directamente con los comportamientos de los segmentos identificados, quienes, mediante el uso constante de la aplicación para monitorear su consumo de agua y mejorar sus hábitos, contribuyen al posicionamiento de la solución. De esta manera, se busca evidenciar que la aplicación no solo es funcional, sino que también aporta valor real en la optimización del consumo, incentivando su uso continuo y su recomendación dentro de su entorno cercano.
+
+<div align="center">
+  <img src="images/impact_map2.png" alt="Impact-Mapping-BG1" width="600">
+</div>
+
+**Business Goal 2: Optimizar el 70 % del monitoreo del consumo de agua en 6 meses y aumentar la retención de usuarios en un 25 % en 9 meses**
+
+Este objetivo se enfoca en fortalecer la permanencia de los usuarios dentro de la plataforma, priorizando la generación de valor continuo a través de funcionalidades más avanzadas y automatizadas. La optimización del monitoreo del consumo de agua busca mejorar la experiencia del usuario, permitiéndole acceder a información más precisa, oportuna y accionable, lo que facilita la toma de decisiones y fomenta un uso más eficiente del recurso.
+
+Por otro lado, el incremento en la retención de usuarios responde a la necesidad de consolidar una base activa y comprometida, asegurando que quienes adoptan la solución continúen utilizándola en el tiempo. Este objetivo se vincula directamente con los comportamientos esperados de los segmentos identificados, quienes, al percibir beneficios claros como el ahorro económico, la detección temprana de problemas y la mejora en sus hábitos de consumo, desarrollan una relación constante con la aplicación.
+
+En este sentido, las funcionalidades asociadas, como la automatización de alertas, el seguimiento del consumo y la personalización de la experiencia, cumplen un rol clave en la fidelización de los usuarios. Así, este Business Goal no solo busca mejorar el desempeño técnico del producto, sino también consolidar su relevancia en la vida cotidiana de los usuarios, garantizando su uso sostenido y su crecimiento a largo plazo.
+
+<div align="center">
+  <img src="images/impact_map3.png" alt="Impact-Mapping-BG2" width="600">
+</div>
 
 
 
