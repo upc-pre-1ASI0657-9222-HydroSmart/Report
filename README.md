@@ -96,3 +96,28 @@ El estado actual del acceso a información sobre consumo de agua no brinda a los
 
 ¿Cómo podríamos diseñar una experiencia que motive a los jóvenes a adoptar hábitos de consumo responsable desde su celular?
 
+#### 1.2.2.2. Lean UX Assumptions.
+Assumptions Worksheet
+
+- ¿Quién es el usuario?
+  Tenemos dos tipos de usuario: los propietarios (dueños de viviendas con áreas verdes y arrendadores con departamentos de servicios incluidos) y los inquilinos (estudiantes y jóvenes arrendatarios con presupuesto limitado).
+
+- ¿Dónde encaja nuestro producto en su trabajo o vida?
+  Nuestro producto servirá para monitorear y gestionar el consumo de agua del hogar de manera sencilla, integrándose en la rutina diaria del usuario como una herramienta de control financiero y ambiental desde su smartphone.
+
+- ¿Qué problemas resuelve nuestro producto?
+  El producto resuelve la falta de visibilidad en tiempo real sobre el consumo de agua, la detección tardía de fugas y el descontrol del gasto hídrico que impacta directamente en la economía del hogar.
+
+- ¿Cuándo y cómo es usado nuestro producto?
+  Cuando el usuario desee revisar su consumo diario, recibir alertas de fugas o anomalías, o establecer metas de ahorro personalizadas desde su celular.
+- ¿Qué características son importantes? Para el segmento propietarios: monitoreo por unidad, alertas de consumo excesivo y reportes históricos. Para el segmento inquilinos: metas de ahorro adaptadas a su presupuesto y notificaciones en tiempo real.
+-  ¿Cómo debe verse nuestro producto y cómo comportarse? Nuestro producto deberá transmitir confianza y claridad, presentando datos complejos de consumo de forma visual y simple. Debe verse moderno, minimalista y fácil de usar para cualquier perfil de usuario.
+
+Business Assumptions:
+- Creemos que los usuarios están dispuestos a pagar por una solución digital que les ayude a reducir su factura de agua mensual.
+- Estas necesidades se pueden resolver con una plataforma inteligente que traduzca datos de consumo hídrico en información clara, alertas automáticas y metas de ahorro personalizadas.
+-  Creemos que el mercado peruano tiene suficiente penetración de smartphones para adoptar una app de monitoreo hídrico.
+
+- Creemos que HydroSmart puede generar ingresos a través de suscripciones mensuales o anuales.
+- Nuestro mayor riesgo es que los usuarios no perciban el valor de pagar por monitorear su consumo de agua al estar acostumbrados a herramientas gratuitas o analógicas.
+- Creemos que alianzas con empresas de servicios de agua como SEDAPAL pueden acelerar la adopción de la plataforma.
