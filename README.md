@@ -121,3 +121,12 @@ Business Assumptions:
 - Creemos que HydroSmart puede generar ingresos a través de suscripciones mensuales o anuales.
 - Nuestro mayor riesgo es que los usuarios no perciban el valor de pagar por monitorear su consumo de agua al estar acostumbrados a herramientas gratuitas o analógicas.
 - Creemos que alianzas con empresas de servicios de agua como SEDAPAL pueden acelerar la adopción de la plataforma.
+
+#### 1.2.2.3. Lean UX Hypothesis Statements
+
+- Creemos que si ofrecemos a los propietarios de viviendas con áreas verdes un sistema de monitoreo en tiempo real con alertas de consumo excesivo, entonces podrán reducir su gasto hídrico mensual. Sabremos que estamos en lo correcto cuando los usuarios reporten una reducción de al menos 20% en su factura de agua durante los primeros tres meses de uso.
+
+- Creemos que si brindamos a los arrendadores una herramienta de monitoreo por unidad que les permita identificar consumos desmedidos de sus inquilinos, entonces podrán proteger su rentabilidad y reducir pérdidas económicas. Sabremos que estamos en lo correcto cuando los arrendadores reporten una mejora en el control de sus gastos de agua y una reducción de conflictos con inquilinos por consumo excesivo.
+
+- Creemos que si proporcionamos a los jóvenes arrendatarios metas de ahorro personalizadas y alertas de consumo adaptadas a su presupuesto, entonces adoptarán hábitos de consumo más responsables. Sabremos que estamos en lo correcto cuando los usuarios del segmento inquilinos logren mantenerse dentro de su meta de consumo mensual durante al menos dos meses consecutivos.
+
