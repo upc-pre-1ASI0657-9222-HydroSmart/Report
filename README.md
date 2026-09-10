@@ -30,7 +30,8 @@ Ser la plataforma referente en eficiencia hídrica residencial en Latinoamérica
 | <img src="images/yeira.jpeg" alt="Yeira Shari Huaman Olivos" width="80"> <br> Huaman Olivos, Yeira Shari         | U202210513        | Ingeniería de Software | Estudiante de Ingeniería de Software,  responsable y comprometida, con interés en seguir desarrollando mis habilidades y aportar de manera activa al trabajo en equipo y al desarrollo del proyecto. |
 | <img src="images/mateo.jpg" alt="Mateo Italo Loechle Arias" width="80"> <br> Loechle Arias, Mateo Italo          | U202215004       | Ingeniería de Software | Estudiante de Ingeniería de Software, interesado en el desarrollo backend con arquitectura hexagonal, la creación de soluciones tecnológicas y automatizacion de procesos.                           |
 | <img src="images/nicolas.jpeg" alt="Victor Nicolás Ortiz Alarcón" width="80"> <br> Ortiz Alarcón, Victor Nicolás | U202312899 | Ingeniería de Software | Estudiante de Ingeniería de Software, interesado en el desarrollo de aplicaciones, la programación y la creación de soluciones tecnológicas innovadoras.                                             |
-| (fotito) <br> Torres Lavandera, Andrés Rodrigo                                                                   | U202312557        | Ingeniería de Software | (a)                                                                                                                                                                                                  |
+| <img src="images/andres.png" alt="Andrés Rodrigo Torres Lavandera" width="80"> <br> Torres Lavandera, Andrés Rodrigo | U202312557 | Ingeniería de Software | 
+Estudiante de Ingeniería de Software, interesado en el desarrollo frontend y backend de aplicaciones, motivado por aprender y fortalecer constantemente mis conocimientos en tecnologías y herramientas de desarrollo.
 
 
 ## 1.2. Solution Profile
