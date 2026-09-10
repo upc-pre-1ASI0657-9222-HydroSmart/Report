@@ -116,8 +116,6 @@ Assumptions Worksheet
 Business Assumptions:
 - Creemos que los usuarios están dispuestos a pagar por una solución digital que les ayude a reducir su factura de agua mensual.
 - Estas necesidades se pueden resolver con una plataforma inteligente que traduzca datos de consumo hídrico en información clara, alertas automáticas y metas de ahorro personalizadas.
--  Creemos que el mercado peruano tiene suficiente penetración de smartphones para adoptar una app de monitoreo hídrico.
-
 - Creemos que HydroSmart puede generar ingresos a través de suscripciones mensuales o anuales.
 - Nuestro mayor riesgo es que los usuarios no perciban el valor de pagar por monitorear su consumo de agua al estar acostumbrados a herramientas gratuitas o analógicas.
 - Creemos que alianzas con empresas de servicios de agua como SEDAPAL pueden acelerar la adopción de la plataforma.
