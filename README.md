@@ -23,14 +23,14 @@ Ser la plataforma referente en eficiencia hídrica residencial en Latinoamérica
 </div>
 
 ### 1.1.2. Perfiles de integrantes del equipo
-| Integrante                                                                   | Código Estudiante | Descripcion de Carrera | Conocimientos y Habilidades a apuntar                                                                 |
-|------------------------------------------------------------------------------|-------------------|------------------------|-------------------------------------------------------------------------------------------------------|
-| (fotito) <br> Guevara Serrano, Diego Ismael                                  | U202318951        | Ingeniería de Software | (a)                                                                                                   |
-| (fotito) <br> Hancco Poma, Keyner Iván     | U20221C726       | Ingeniería de Software | (a) |
-| (fotito) <br> Huaman Olivos, Yeira Shari | U202210513        | Ingeniería de Software | (a)               |
-| (fotito) <br> Loechle Arias, Mateo Italo   | U202215004       | Ingeniería de Software |(a)                                     |
+| Integrante                                                                                                       | Código Estudiante | Descripcion de Carrera | Conocimientos y Habilidades a apuntar                                                                                                                    |
+|------------------------------------------------------------------------------------------------------------------|-------------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| (fotito) <br> Guevara Serrano, Diego Ismael                                                                      | U202318951        | Ingeniería de Software | (a)                                                                                                                                                      |
+| (fotito) <br> Hancco Poma, Keyner Iván                                                                           | U20221C726       | Ingeniería de Software | (a)                                                                                                                                                      |
+| <img src="images/yeira.jpeg" alt="Yeira Shari Huaman Olivos" width="80"> <br> Huaman Olivos, Yeira Shari         | U202210513        | Ingeniería de Software | Estudiante de Ingeniería de Software,  responsable y comprometida, con interés en seguir desarrollando mis habilidades y aportar de manera activa al trabajo en equipo y al desarrollo del proyecto.                                                                                                                   |
+| (fotito) <br> Loechle Arias, Mateo Italo                                                                         | U202215004       | Ingeniería de Software | (a)                                                                                                                                                      |
 | <img src="images/nicolas.jpeg" alt="Victor Nicolás Ortiz Alarcón" width="80"> <br> Ortiz Alarcón, Victor Nicolás | U202312899 | Ingeniería de Software | Estudiante de Ingeniería de Software, interesado en el desarrollo de aplicaciones, la programación y la creación de soluciones tecnológicas innovadoras. |
-| (fotito) <br> Torres Lavandera, Andrés Rodrigo    | U202312557        | Ingeniería de Software | (a)                                                                                   |
+| (fotito) <br> Torres Lavandera, Andrés Rodrigo                                                                   | U202312557        | Ingeniería de Software | (a)                                                                                                                                                      |
 
 
 ## 1.2. Solution Profile
