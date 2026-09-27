@@ -93,9 +93,171 @@ Finalmente, el usuario visualiza en su dashboard tanto la alerta recibida como e
 
 ### 4.2.1 Design Purpose
 
+El propósito principal del diseño de HydroSmart es construir una plataforma escalable, segura y de baja latencia capaz de transformar las lecturas continuas de sensores IoT en información accionable para distintos perfiles de usuario (propietarios de viviendas, arrendadores e inquilinos), permitiéndoles detectar fugas, optimizar el consumo de agua y proyectar su gasto de forma anticipada.
+
+Desde la perspectiva de negocio, el sistema busca proveer una experiencia diferencial frente a soluciones tradicionales de medición: en lugar de entregar únicamente lecturas de volumen, HydroSmart interpreta esos datos mediante algoritmos de detección de anomalías y proyecciones financieras, agregando valor directo al usuario final. El modelo de monetización basado en suscripciones escalonadas (Freemium, Pro, Smart) refuerza la necesidad de garantizar alta disponibilidad y confiabilidad, ya que una interrupción en el servicio afecta directamente la percepción de valor del producto.
+
+Desde la perspectiva técnica, el diseño arquitectónico está orientado a satisfacer tres objetivos fundamentales:
+
+1. **Procesamiento continuo y en tiempo real:** Las lecturas de caudal generadas por los sensores IoT deben ser ingestadas, validadas, procesadas y reflejadas en el dashboard del usuario con la menor latencia posible, garantizando que las alertas de fuga lleguen de forma oportuna.
+2. **Escalabilidad progresiva y mantenibilidad:** La arquitectura de microservicios organizada en Bounded Contexts (IAM, Consumo y Telemetría, Alertas y Notificaciones, Analíticas y Reportes, Suscripciones, entre otros) permite que cada dominio escale y evolucione de forma independiente, sin comprometer la integridad del sistema completo.
+3. **Seguridad y trazabilidad de los datos:** Los datos de consumo hídrico constituyen el activo más crítico del sistema. La plataforma garantiza su integridad mediante procesamiento idempotente (para evitar lecturas duplicadas), validación por rol de usuario en cada petición y delegación de la gestión de identidad a Firebase Authentication.
+
+En síntesis, el diseño de HydroSmart no busca únicamente conectar sensores a una interfaz visual, sino construir un ecosistema de datos hídricos que sea confiable, seguro y capaz de crecer junto con la base de usuarios sin sacrificar la experiencia ni la precisión de la información entregada.
+
 ### 4.2.2 Primary Functionality (Primary User Stories)
 
+Las siguientes User Stories representan la funcionalidad primaria que define la estructura arquitectónica central del sistema. Se agrupan por área funcional y se detalla el impacto arquitectónico que cada una genera.
+
+**Funcionalidad Core – Registro y Autenticación**
+
+US-06: Registro e inicio de sesión seguro
+
+Como usuario, quiero registrarme e iniciar sesión de forma segura con mi correo electrónico para acceder únicamente a los datos de mis viviendas o unidades.
+
+Impacto Arquitectónico: Establece el microservicio de Gestión de Identidad (IAM) con integración a Firebase Authentication, delegando completamente la gestión de credenciales al proveedor externo. La entidad User almacena únicamente el firebase_uid como referencia, sin persistir contraseñas localmente. Define la relación uno a uno entre User y Profile, y la asignación de roles mediante la enumeración UserType (OWNER, TENANT, ADMIN). Esta separación establece la validación de acceso en el API Gateway, donde cada petición es verificada contra el token JWT y el rol del usuario antes de ser enrutada al microservicio correspondiente.
+
+US-05: Administración de unidades (arrendador)
+
+Como arrendador, quiero registrar mis unidades habitacionales y asociar a cada una sus inquilinos y sensores, para supervisar el consumo individual y evitar cobros incorrectos.
+
+Impacto Arquitectónico: Define la separación entre el microservicio IAM (identidad) y el microservicio de Propiedades y Unidades (gestión de inmuebles). El IAM crea el usuario con firebase_uid y asigna el rol de arrendador, mientras que el microservicio de Propiedades registra las unidades habitacionales vinculadas al ownerId. Esta separación establece la comunicación entre bounded contexts mediante el patrón Facade/ACL, validando que solo el propietario registrado pueda asociar inquilinos y sensores a sus unidades. La relación propietario–unidad–inquilino–sensor constituye el modelo de dominio central para la supervisión del consumo individual.
+
+**Funcionalidad Core – Monitoreo y Telemetría en Tiempo Real**
+
+US-01: Monitoreo de consumo en tiempo real
+
+Como propietario, quiero visualizar en mi dashboard el caudal de agua de mi vivienda en tiempo real para identificar variaciones inusuales de inmediato.
+
+Impacto Arquitectónico: Establece el pipeline de ingesta IoT como el componente más crítico del sistema. Los sensores/medidores inteligentes envían lecturas de caudal mediante un protocolo ligero (MQTT) hacia el gateway de ingesta, el cual traduce y reenvía la información al microservicio de Consumo y Telemetría a través de eventos internos. La entidad ConsumptionRecord registra cada lectura con volumeLiters, instantFlowRate y timestamp. Se aplica el patrón Idempotent Consumer para evitar que reenvíos del sensor (por fallas de red) dupliquen una lectura y distorsionen el consumo real. El evento de dominio `ConsumptionRecorded` se publica al Message Broker (RabbitMQ) para ser consumido de forma asíncrona por los bounded contexts de Alertas y Analíticas.
+
+US-02: Detección y alerta de fugas
+
+Como propietario o arrendador, quiero recibir una notificación push inmediata cuando el sistema detecte un patrón de consumo continuo o anómalo que indique una posible fuga.
+
+Impacto Arquitectónico: Define el bounded context de Alertas y Notificaciones como consumidor del evento `ConsumptionRecorded`. El módulo AnomalyDetector evalúa cada lectura contra los umbrales configurados (sensitivityThreshold) y contra patrones de consumo continuo fuera de lo habitual. Si detecta una anomalía, genera el evento `LeakDetected` y solicita al servicio externo de notificaciones push (Firebase Cloud Messaging) que envíe una alerta inmediata al dispositivo del usuario, indicando la severidad (INFO, WARNING, CRITICAL) y el punto donde ocurre. La latencia entre la recepción de la lectura anómala y la entrega de la notificación push no debe superar los 15 segundos en el percentil 95.
+
+**Funcionalidad Core – Analíticas y Proyecciones**
+
+US-03: Proyección de gasto mensual
+
+Como usuario, quiero ver una proyección del gasto en agua de mi vivienda para el cierre del mes en curso, basada en mi consumo histórico y en tiempo real.
+
+Impacto Arquitectónico: Requiere el bounded context de Analíticas y Reportes con acceso a series temporales de consumo. El servicio CostCalculator aplica el tarifario vigente de SEDAPAL (pricePerCubicMeter, fixedCharge, taxRate) para transformar el volumen consumido en un costo proyectado en soles. Se implementa el patrón CQRS para separar las consultas de proyección (GetDashboardSummaryQuery) de las operaciones de escritura de nuevas lecturas (RegisterConsumptionCommand), optimizando las consultas masivas del historial y el dashboard sin afectar la ingesta continua de datos.
+
+US-07: Historial de consumo y reportes exportables
+
+Como propietario o arrendador, quiero consultar el historial de consumo de mis unidades por rango de fechas y exportarlo en formato PDF o CSV para presentarlo ante la junta de propietarios o ante mi inquilino.
+
+Impacto Arquitectónico: Establece que el microservicio de Analíticas y Reportes debe exponer endpoints de consulta y exportación que lean los datos consolidados de las series temporales de consumo y los transformen en los formatos requeridos (PDF, CSV). El acceso a estos reportes queda restringido exclusivamente a usuarios con el rol verificado de propietario o arrendador de la unidad consultada, aplicando validación de rol en cada petición.
+
+**Funcionalidad Core – Ahorro y Recomendaciones**
+
+US-04: Gestión de metas de ahorro
+
+Como usuario, quiero establecer una meta de consumo mensual en m³ o en soles para recibir recomendaciones y alertas cuando me acerque al límite.
+
+Impacto Arquitectónico: Introduce la lógica de dominio del bounded context de Ahorro y Recomendaciones. La entidad SavingGoal persiste los objetivos del usuario (targetVolume, targetCost, startDate, endDate, currentProgress) y el sistema verifica periódicamente el avance respecto a la meta. La entidad Recommendation genera sugerencias automáticas para optimizar el consumo basándose en el comportamiento histórico. Cuando el consumo acumulado supera un umbral porcentual de la meta, se dispara una alerta preventiva a través del bounded context de Alertas y Notificaciones.
+
+**Funcionalidad Core – Monetización y Suscripciones**
+
+US-08: Gestión de suscripción y pagos
+
+Como usuario, quiero contratar o cambiar mi plan de suscripción (Freemium, Pro, Smart) y realizar el pago de forma segura para desbloquear las funcionalidades correspondientes a mi nivel.
+
+Impacto Arquitectónico: Define el bounded context de Suscripciones, que gestiona el ciclo de vida completo de la suscripción del usuario: plan_type (Freemium, Pro, Smart), estado activo/inactivo y fecha de renovación. Se integra con una pasarela de pagos externa (Stripe o Culqi) mediante el Adapter Pattern para procesar las transacciones de forma segura. El estado de la suscripción debe sincronizarse con las capacidades de cada plan, controlando qué funcionalidades (alertas avanzadas, reportes exportables, metas personalizadas) están disponibles para cada nivel.
+
 ### 4.2.3 Quality Attribute Scenarios
+
+En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la arquitectura de la plataforma HydroSmart. Estos escenarios constituyen una herramienta fundamental de diseño y validación, ya que permiten operativizar y hacer completamente medibles los requerimientos no funcionales (RNF) del sistema, tales como el rendimiento, la seguridad, la disponibilidad y la escalabilidad. Al desglosar cada atributo en términos de fuente, estímulo, artefacto, entorno, respuesta y medida, se garantiza que cada decisión arquitectónica pueda ser verificada objetivamente.
+
+Escenario 1: Disponibilidad – Ingesta continua de lecturas IoT
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Sensor IoT instalado en el punto de suministro de agua de una vivienda. |
+| **Estímulo** | El sensor envía lecturas de caudal de forma continua cada 30 segundos durante las 24 horas del día. |
+| **Entorno** | Tiempo de ejecución, bajo condiciones de operación normal en producción con múltiples sensores activos simultáneamente. |
+| **Artefacto** | Microservicio de Consumo y Telemetría + Message Broker (RabbitMQ). |
+| **Respuesta** | El sistema procesa e ingesta cada lectura sin pérdida de datos. Ante una falla del microservicio, el Message Broker retiene los eventos en cola y el servicio los procesa al recuperarse. |
+| **Medida de la respuesta** | El servicio debe estar disponible el **99.5 %** del tiempo mensual, garantizando cero pérdida de lecturas incluso ante reinicios o fallas transitorias del nodo. |
+
+Escenario 2: Rendimiento – Notificación de fuga en tiempo real
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Módulo AnomalyDetector del bounded context de Alertas y Notificaciones. |
+| **Estímulo** | El algoritmo detecta un patrón de consumo continuo indicativo de fuga (flujo constante durante más de 60 minutos sin interrupción). |
+| **Entorno** | Operación normal en producción; el usuario tiene la app instalada con permisos de notificaciones push activos. |
+| **Artefacto** | Bounded context de Alertas y Notificaciones + Firebase Cloud Messaging. |
+| **Respuesta** | El sistema genera el evento `LeakDetected`, persiste la alerta con severidad CRITICAL y despacha la notificación push al dispositivo del usuario. |
+| **Medida de la respuesta** | El tiempo transcurrido desde la recepción de la lectura anómala hasta la entrega de la notificación push no debe superar los **15 segundos** en el percentil 95 de las solicitudes. |
+
+Escenario 3: Seguridad – Acceso no autorizado a datos de consumo
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Usuario no autenticado o con rol incorrecto (por ejemplo, un inquilino intentando acceder a datos de una unidad que no le pertenece). |
+| **Estímulo** | Intento de acceso a los endpoints de consumo, alertas o reportes de una unidad sin autorización. |
+| **Entorno** | Cualquier entorno (producción o staging), bajo condiciones normales de operación. |
+| **Artefacto** | API Gateway + microservicio de Gestión de Identidad (IAM). |
+| **Respuesta** | El sistema valida el token JWT y el rol del usuario; si la validación falla, rechaza la solicitud con un error `403 Forbidden` sin exponer información sensible ni datos de la unidad consultada. |
+| **Medida de la respuesta** | El **100 %** de los endpoints protegidos valida token y rol antes de procesar la petición. Ningún dato de consumo es accesible sin autorización explícita del propietario o arrendador correspondiente. |
+
+Escenario 4: Escalabilidad – Crecimiento de sensores activos
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Crecimiento orgánico de la base de usuarios y sensores registrados en la plataforma. |
+| **Estímulo** | El número de sensores activos se incrementa de 500 a 5 000 en un periodo de seis meses. |
+| **Entorno** | Crecimiento sostenido en producción, con picos de lecturas simultáneas en horas punta de consumo (mañana y noche). |
+| **Artefacto** | Microservicio de Consumo y Telemetría + Message Broker (RabbitMQ). |
+| **Respuesta** | El sistema mantiene el procesamiento de lecturas dentro de los umbrales de latencia definidos, escalando horizontalmente las instancias del microservicio sin cambios en la arquitectura ni en los contratos de API. |
+| **Medida de la respuesta** | La latencia de procesamiento de una lectura no debe incrementarse más del **20 %** respecto a la línea base cuando la carga de sensores se multiplica por 10. |
+
+Escenario 5: Mantenibilidad – Cambio de proveedor de persistencia
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Equipo de desarrollo durante una fase de evolución del sistema. |
+| **Estímulo** | Se requiere migrar el almacenamiento de lecturas de consumo a una base de datos optimizada para series de tiempo (por ejemplo, InfluxDB o TimescaleDB). |
+| **Entorno** | Fase de evolución del sistema (iteración futura), sin afectar la operación en producción. |
+| **Artefacto** | Capa de repositorio (Repository Pattern) del microservicio de Consumo y Telemetría. |
+| **Respuesta** | El cambio de proveedor de persistencia se realiza modificando únicamente la implementación del repositorio, sin alterar la lógica de dominio, los eventos publicados ni los contratos de API. |
+| **Medida de la respuesta** | La migración no requiere modificaciones en ningún otro bounded context ni en el API Gateway. El tiempo de implementación y pruebas no debe superar **tres días** de trabajo del equipo. |
+
+Escenario 6: Interoperabilidad – Integración de nuevo protocolo IoT
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Fabricante de sensor IoT externo que utiliza un protocolo de comunicación diferente al inicialmente soportado (por ejemplo, CoAP en lugar de MQTT). |
+| **Estímulo** | Se integra un nuevo modelo de medidor inteligente con un formato de telemetría distinto. |
+| **Entorno** | Expansión del ecosistema de hardware compatible de HydroSmart. |
+| **Artefacto** | Gateway de ingesta IoT (Adapter Pattern). |
+| **Respuesta** | El sistema incorpora el nuevo protocolo implementando un adaptador en el gateway de ingesta, traduciendo el formato del sensor al modelo interno de ConsumptionRecord sin modificar el microservicio de Consumo y Telemetría ni los bounded contexts internos. |
+| **Medida de la respuesta** | La integración de un nuevo protocolo de sensor requiere únicamente la creación del adaptador correspondiente, con **cero cambios** en los microservicios de dominio internos. |
+
+Escenario 7: Rendimiento – Carga del dashboard de consumo
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Usuario propietario o arrendador accediendo al dashboard principal de la aplicación. |
+| **Estímulo** | El usuario solicita la visualización del resumen de consumo actual, la proyección de gasto mensual y el estado de sus metas de ahorro. |
+| **Entorno** | Operación normal en producción, con múltiples usuarios consultando el dashboard simultáneamente. |
+| **Artefacto** | Bounded context de Analíticas y Reportes + API Gateway. |
+| **Respuesta** | El sistema recupera y presenta los datos consolidados del dashboard (consumo actual, proyección, metas) de forma completa y sin errores. |
+| **Medida de la respuesta** | El tiempo de carga del dashboard completo no debe superar los **2 segundos** en el percentil 95, incluyendo el consumo en tiempo real, la proyección y el progreso de ahorro. |
+
+Escenario 8: Seguridad – Procesamiento de pagos de suscripción
+
+| Elemento | Descripción |
+| :--- | :--- |
+| **Fuente del estímulo** | Usuario que contrata o cambia su plan de suscripción (Freemium, Pro, Smart). |
+| **Estímulo** | El usuario inicia el flujo de pago para activar o actualizar su suscripción. |
+| **Entorno** | Operación normal en producción, con datos financieros sensibles en tránsito. |
+| **Artefacto** | Bounded context de Suscripciones + pasarela de pagos externa (Stripe/Culqi). |
+| **Respuesta** | El sistema delega el procesamiento del pago a la pasarela externa mediante HTTPS, sin almacenar datos de tarjeta localmente. El estado de la suscripción se actualiza únicamente tras confirmación exitosa de la pasarela. |
+| **Medida de la respuesta** | El **100 %** de las transacciones de pago se procesan a través de la pasarela certificada PCI-DSS. Ningún dato financiero del usuario se persiste en la base de datos de HydroSmart. |
 
 ### 4.2.4 Constraints
 
