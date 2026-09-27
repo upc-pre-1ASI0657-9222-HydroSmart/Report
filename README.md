@@ -459,18 +459,36 @@ Evitar que un cambio en la gestión de propiedades afecte la detección de fugas
 
 ## 4.3 ADD Iterations
 
-### 4.3.X Iteration N: <Iteration Name>
+### 4.3.1 Iteration 1: <Iteration Name>
 
-#### 4.3.X.1 Architectural Design Backlog N
+#### 4.3.1.1 Architectural Design Backlog N
 
-#### 4.3.X.2 Establish Iteration Goal by Selecting Drivers
+#### 4.3.1.2 Establish Iteration Goal by Selecting Drivers
 
-#### 4.3.X.3 Choose One or More Elements of the System to Refine
+#### 4.3.1.3 Choose One or More Elements of the System to Refine
 
-#### 4.3.X.4 Choose One or More Design Concepts That Satisfy the Selected Drivers
+#### 4.3.1.4 Choose One or More Design Concepts That Satisfy the Selected Drivers
 
-#### 4.3.X.5 Instantiate Architectural Elements, Allocate Responsibilities, and Define Interfaces
+Considerando las necesidades funcionales de HydroSmart y la estructura definida previamente para la solución, se seleccionan conceptos arquitectónicos que permitan mantener una comunicación organizada entre la aplicación web, la lógica del sistema y la información almacenada. La propuesta toma como base el uso de DDD, una API REST y una organización por contextos funcionales, de manera que las principales operaciones de la plataforma puedan evolucionar sin afectar todo el sistema.
 
-#### 4.3.X.6 Sketch Views (C4 & UML) and Record Design Decisions
+**Performance:**
 
-#### 4.3.X.7 Analysis of Current Design and Review Iteration Goal (Kanban Board)
+- La aplicación web se comunicará con el backend mediante una API REST, permitiendo solicitar únicamente la información necesaria para cada funcionalidad. Esto resulta importante para las vistas que muestran datos de consumo, historial, reportes y comparativos, ya que la información debe llegar de forma clara y sin recargar innecesariamente la interfaz.
+- El procesamiento de los datos de consumo se concentrará en el backend, donde se realizan las consultas y operaciones necesarias para alimentar el Dashboard y los reportes. De esta manera, la aplicación web se enfoca principalmente en presentar la información al usuario, mientras que el servidor se encarga de procesarla y obtenerla desde la base de datos.
+
+**Security:**
+
+- El acceso a la plataforma contempla un proceso de autenticación de usuarios, permitiendo validar las credenciales antes de acceder a las funcionalidades privadas de HydroSmart. Esta responsabilidad se encuentra relacionada con el contexto de User Management y con los endpoints destinados al registro e inicio de sesión.
+- Las operaciones relacionadas con usuarios, perfiles, dispositivos y notificaciones se gestionan desde el backend mediante endpoints específicos. Esta separación permite centralizar el control de las operaciones y evitar que la aplicación web tenga acceso directo a la base de datos.
+- La gestión de preferencias y configuraciones del usuario también se mantiene dentro del backend, permitiendo conservar de forma persistente información como las configuraciones de notificaciones.
+
+**Interoperabilidad y Estructura (Modificabilidad):**
+
+- HydroSmart organiza la lógica del dominio mediante bounded contexts, separando responsabilidades como User Management, Consumption Analytics / Reporting, Consumption Monitoring, Anomaly Detection, Notification y Saving Goals. Esta organización reduce el acoplamiento entre funcionalidades y facilita trabajar sobre una parte específica del sistema.
+- El backend se implementa con .NET y utiliza MySQL para la persistencia de la información. La comunicación con la aplicación se realiza mediante una API REST, cuyos endpoints fueron documentados y probados con Swagger. Esto establece una interfaz uniforme entre el frontend y los servicios del sistema.
+- La solución también mantiene preparada la gestión de dispositivos para una futura integración con sensores o medidores inteligentes, sin hacer que el funcionamiento inicial dependa de hardware especializado.
+#### 4.3.1.5 Instantiate Architectural Elements, Allocate Responsibilities, and Define Interfaces
+
+#### 4.3.1.6 Sketch Views (C4 & UML) and Record Design Decisions
+
+#### 4.3.1.7 Analysis of Current Design and Review Iteration Goal (Kanban Board)
