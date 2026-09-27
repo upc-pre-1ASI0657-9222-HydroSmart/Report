@@ -379,6 +379,29 @@ En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la
 | **Medida de la respuesta** | El reporte queda disponible para descarga en menos de 30 segundos y la solicitud inicial se confirma en menos de 1 segundo. |
 
 ### 4.2.4 Constraints
+ 
+Identificamos los factores técnicos, legales o de diseño que limitan y condicionan el desarrollo del proyecto. Estas condiciones establecen el marco obligatorio dentro del cual se debe construir la solución, asegurando su viabilidad dentro del entorno previsto.
+ 
+| ID | Descripción |
+|---|---|
+| R01 | La autenticación debe delegarse a Firebase Authentication, y el sistema debe validar los permisos mediante tokens JWT y roles de usuario (Propietario, Arrendador, Inquilino y Administrador) para bloquear accesos no autorizados a funcionalidades y datos de consumo. |
+| R02 | AquaPulse no fabrica ni comercializa hardware: la captura de datos depende de sensores IoT y medidores inteligentes de terceros compatibles que publiquen sus lecturas mediante el protocolo MQTT. |
+| R03 | La plataforma y los servicios web deben seguir el enfoque de diseño DDD (Domain-Driven Design), con una arquitectura de microservicios en la que cada bounded context gestiona su propia base de datos. |
+| R04 | El backend debe exponer una API RESTful en formato JSON, documentada con OpenAPI 3.1 / Swagger, a través de un único API Gateway para su consumo desde la aplicación web y la aplicación móvil. |
+| R05 | Los microservicios deben desarrollarse en Java 17 o superior con Spring Boot 3. |
+| R06 | La aplicación web debe desarrollarse en Angular con TypeScript y la aplicación móvil en Flutter para Android e iOS. |
+| R07 | La landing page debe desarrollarse con HTML, CSS y JavaScript, y ser responsive para dispositivos móviles. |
+| R08 | Se debe usar MySQL como base de datos de los microservicios transaccionales y MongoDB para el almacenamiento de las lecturas de consumo como series de tiempo. |
+| R09 | Las lecturas de los sensores deben recibirse mediante MQTT a través de un gateway de ingesta, y la comunicación asíncrona entre microservicios debe realizarse mediante RabbitMQ. |
+| R10 | El intercambio de datos entre clientes y servidor debe realizarse mediante HTTPS, y la conexión de los sensores mediante MQTT sobre TLS. |
+| R11 | El tratamiento de los datos personales y de consumo debe cumplir con la Ley N.° 29733, Ley de Protección de Datos Personales, y su reglamento. |
+| R12 | Los montos deben expresarse en soles (PEN) y calcularse según la estructura tarifaria de la empresa prestadora del servicio (SEDAPAL en Lima) aprobada por SUNASS. |
+| R13 | La plataforma contará con tres planes de suscripción: Freemium, Premium (S/ 15 a S/ 25 mensuales) y Arrendador (S/ 40 a S/ 60 mensuales), cuyos pagos se procesan mediante una pasarela externa (Stripe o Culqi). |
+| R14 | Solo puede existir una meta de ahorro activa por usuario y periodo mensual, y un medidor solo puede estar vinculado a una unidad a la vez. |
+| R15 | Las notificaciones push deben enviarse mediante Firebase Cloud Messaging y los correos electrónicos mediante SendGrid. |
+| R16 | Las imágenes de perfil y los reportes descargables deben almacenarse en AWS S3, y la solución debe desplegarse en la nube de AWS. |
+| R17 | La aplicación web debe ser compatible con las dos últimas versiones de Chrome, Firefox, Safari y Edge, y la aplicación móvil con Android 8.0 e iOS 14 o superiores. |
+| R18 | La solución debe completarse dentro del periodo académico 2026-20, según el cronograma de entregas del curso. |
 
 ### 4.2.5 Architectural Concerns
 
