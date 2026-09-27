@@ -66,6 +66,9 @@ La incorporación de estos servicios externos responde a principios arquitectón
 
 En conjunto, el diagrama de contexto muestra que HydroSmart actúa como el núcleo central que traduce las lecturas de consumo de agua en información accionable para sus tres segmentos de usuario, mientras delega funciones específicas como autenticación, notificaciones y pagos a servicios externos especializados.
 
+![alt text](images/ContextoHydroSmart-key.png)
+
+![alt text](images/ContextoHydroSmart.png)
 
 ### 4.1.4 Approach driven ViewPoints Diagrams
 Se presenta el diagrama de secuencia que describe el flujo principal cuando un sensor reporta una lectura de consumo y el sistema detecta una posible anomalía (fuga o consumo excesivo), notificando al usuario en tiempo real. El diagrama organiza las acciones en función de los bounded contexts más relevantes del sistema: **Identity & Access Management (IAM)**, **Consumption & Telemetry**, **Alerts & Notifications** y **Analytics & Reports**.
@@ -78,7 +81,7 @@ A continuación, el flujo se ramifica hacia dos consumidores del evento. Por un 
 
 Finalmente, el usuario visualiza en su dashboard tanto la alerta recibida como el consumo actualizado, pudiendo ajustar su comportamiento (por ejemplo, revisar el riego o reportar la fuga) o modificar su meta de ahorro para el siguiente periodo.
 
-
+![alt text](images/detecciondefuga.drawio.png)
 
 ### 4.1.5 Relational/Non Relational Database Diagram
 
