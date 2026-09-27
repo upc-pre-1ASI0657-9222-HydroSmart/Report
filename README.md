@@ -128,6 +128,86 @@ El propósito del diseño arquitectónico de HydroSmart, producto de la startup 
 La arquitectura debe actuar como un puente coherente entre las necesidades reales de los hogares y las capacidades tecnológicas de la plataforma, asegurando que cada componente del sistema aporte valor directo al objetivo de negocio: transformar el consumo pasivo de agua en una gestión preventiva, inteligente y económica, que permita actuar antes de que el gasto se convierta en un problema.
 
 ### 4.2.2 Primary Functionality (Primary User Stories)
+ 
+Las siguientes User Stories representan la funcionalidad primaria que define la estructura arquitectónica central del sistema. Se agrupan por área funcional y se detalla el impacto arquitectónico que cada una genera.
+ 
+#### Funcionalidad Core - Registro y autenticación
+ 
+**US01: Registro de usuario**
+ 
+Como usuario nuevo, quiero registrarme indicando mi tipo de perfil para acceder a las funcionalidades adaptadas a mis necesidades de consumo de agua.
+ 
+**Impacto Arquitectónico:** Establece el microservicio IAM con integración a Firebase Authentication, delegando completamente la gestión de credenciales al proveedor externo; la entidad `users` almacena únicamente el `firebase_uid` como referencia, sin persistir contraseñas localmente. Define la relación uno a uno entre `users` y `profiles`, y la asignación del tipo de perfil mediante la tabla intermedia `user_roles` (PROPIETARIO, ARRENDADOR, INQUILINO, ADMINISTRADOR) en un modelo muchos a muchos. Al completarse el registro, IAM publica el evento de dominio `UserRegistered` para que los demás bounded contexts inicialicen la información del usuario sin acoplarse a IAM.
+ 
+**US02: Inicio de sesión**
+ 
+Como usuario registrado, quiero iniciar sesión de forma segura para acceder a mi información de consumo sin riesgo a que otros accedan a mis datos.
+ 
+**Impacto Arquitectónico:** Define que el inicio de sesión se realiza contra Firebase Authentication, que emite un token JWT (TS02) con el identificador del usuario. La validación de la firma y expiración del token se centraliza en el API Gateway, de modo que los microservicios internos reciben únicamente peticiones autenticadas y aplican el control de acceso según el rol registrado en IAM.
+ 
+#### Funcionalidad Core - Monitoreo de Consumo
+ 
+**US04: Visualización de consumo en tiempo real**
+ 
+Como usuario, quiero visualizar mi consumo de agua en tiempo real para reducir la incertidumbre sobre mi gasto y poder tomar decisiones inmediatas.
+ 
+**Impacto Arquitectónico:** Define la operación más crítica del sistema y el microservicio de Consumo y Telemetría. Los sensores IoT publican sus lecturas mediante MQTT hacia el gateway de ingesta, que las traduce y reenvía al microservicio, donde se almacenan en la entidad `consumption_readings`, vinculada a `meters` mediante `meter_id`. Cada `Meter` registra su zona (RIEGO, COCINA, BAÑO, GENERAL) y su estado de conexión (ONLINE, OFFLINE) según la fecha de su última lectura, lo que permite mostrar el mensaje de datos no disponibles cuando el medidor pierde conexión (escenario 2 de US04). El consumo se expresa en litros y en soles aplicando la entidad `tariffs`, y cada lectura persistida publica el evento `ConsumptionRecorded`.
+ 
+**US07: Proyección de gasto mensual**
+ 
+Como usuario, quiero ver una proyección de mi gasto mensual para anticiparme al monto del recibo y planificar mejor mi presupuesto.
+ 
+**Impacto Arquitectónico:** Requiere que el microservicio de Analíticas y Reportes consuma el evento `ConsumptionRecorded` y mantenga agregados precalculados en la entidad `daily_consumption`, a partir de los cuales se calcula la proyección del mes. La conversión a soles aplica la estructura tarifaria por rangos de consumo definida en `tariffs` y `tariff_ranges`, parametrizada por empresa prestadora y categoría. La regla de negocio que exige al menos una semana de datos para proyectar se implementa como validación del dominio.
+ 
+#### Funcionalidad Core - Alertas y Notificaciones
+ 
+**US08: Alerta de consumo inusual**
+ 
+Como usuario, quiero recibir alertas cuando mi consumo sea inusual para poder actuar a tiempo y evitar gastos excesivos.
+ 
+**Impacto Arquitectónico:** Define el microservicio de Alertas y Notificaciones, que se suscribe al evento `ConsumptionRecorded` mediante el patrón Observer (publicación/suscripción sobre RabbitMQ), manteniendo desacoplados ambos bounded contexts. La entidad `alert_rules` almacena el umbral configurado por el usuario y la entidad `alerts` registra cada anomalía con su tipo (CONSUMO_INUSUAL, POSIBLE_FUGA, META_PROXIMA), severidad y estado (ACTIVA, ATENDIDA). El envío de la notificación push se delega a Firebase Cloud Messaging.
+ 
+**US09: Alerta de posible fuga**
+ 
+Como propietario, quiero recibir una alerta cuando el sistema detecte una posible fuga para tomar acción antes de que el desperdicio sea irreversible.
+ 
+**Impacto Arquitectónico:** Requiere el patrón Strategy en el microservicio de Alertas y Notificaciones para encapsular los distintos algoritmos de detección (umbral fijo, flujo continuo fuera del horario habitual, desviación respecto al promedio histórico) bajo una interfaz común, facilitando la incorporación de nuevas reglas sin alterar la lógica existente. Al confirmarse la anomalía se publica el evento `LeakDetected`, y la ubicación aproximada de la fuga se obtiene a partir de la zona del medidor que originó la lectura.
+ 
+#### Funcionalidad Core - Gestión de Propiedades e Inquilinos
+ 
+**US11: Registro de unidades**
+ 
+Como arrendador, quiero registrar las unidades de mi inmueble en la plataforma para gestionar el consumo de cada una de forma independiente.
+ 
+**Impacto Arquitectónico:** Define el microservicio de Propiedades y Unidades con la entidad `Property` vinculada al arrendador mediante `owner_id` y una relación uno a muchos con `Unit`. La asignación de inquilinos se registra en la tabla `unit_tenants` y la de medidores en la relación entre `Unit` y `Meter`. Para verificar la existencia y el rol del arrendador sin acoplarse a la implementación interna de IAM, se utiliza el patrón Facade (Anti-Corruption Layer) entre ambos contextos.
+ 
+**US12: Monitoreo por unidad**
+ 
+Como arrendador, quiero monitorear el consumo de agua de cada unidad de mi inmueble para identificar inquilinos con consumo excesivo.
+ 
+**Impacto Arquitectónico:** Establece la comunicación síncrona entre Propiedades y Unidades y Consumo y Telemetría: Propiedades resuelve qué medidores pertenecen a cada unidad del arrendador y Consumo y Telemetría devuelve el consumo individual en litros y soles. Exige que cada consulta valide que la unidad pertenezca al arrendador autenticado, evitando que un usuario acceda al consumo de unidades ajenas.
+ 
+#### Funcionalidad Core - Ahorro y Metas
+ 
+**US14: Establecer meta de ahorro**
+ 
+Como inquilino, quiero establecer una meta de consumo mensual para controlar mi gasto y evitar exceder mi presupuesto.
+ 
+**Impacto Arquitectónico:** Define el microservicio de Ahorro y Recomendaciones con la entidad `SavingGoal`, que almacena el presupuesto mensual en soles, su equivalente en litros calculado con la tarifa vigente, el periodo y el estado (ACTIVA, CUMPLIDA, EXCEDIDA). La invariante de negocio establece una sola meta activa por usuario y periodo. El microservicio consume el evento `ConsumptionRecorded` para actualizar el avance y, al alcanzar el 80 % de la meta, publica el evento `GoalThresholdReached`, que Alertas y Notificaciones convierte en notificación.
+ 
+#### Funcionalidad Core - Historial y Reportes
+ 
+**US06: Historial de consumo**
+ 
+Como usuario, quiero revisar mi historial de consumo para identificar patrones y entender cómo varía mi gasto en el tiempo.
+ 
+**Impacto Arquitectónico:** Establece la aplicación del patrón CQRS en el microservicio de Analíticas y Reportes: las consultas de historial (por ejemplo, `GetConsumptionHistoryQuery`) se resuelven sobre agregados diarios, semanales y mensuales, separadas de la escritura continua de lecturas en Consumo y Telemetría. Esto permite responder rápidamente a los gráficos del historial sin afectar el procesamiento en tiempo real.
+ 
+**US13: Reporte de consumo por unidad**
+ 
+Como arrendador, quiero generar reportes de consumo por unidad para tener evidencia documentada ante disputas con inquilinos.
+ 
+**Impacto Arquitectónico:** Define que el microservicio de Analíticas y Reportes genere el documento descargable de forma asíncrona a partir de los agregados de consumo de la unidad y el periodo seleccionados, lo almacene en el servicio de almacenamiento en la nube (AWS S3) y registre su referencia en la entidad `reports`. Las lecturas utilizadas como evidencia no pueden modificarse después de registradas, lo que garantiza la validez del reporte ante una disputa.
 
 ### 4.2.3 Quality Attribute Scenarios
 
