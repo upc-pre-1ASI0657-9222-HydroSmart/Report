@@ -404,6 +404,58 @@ Identificamos los factores técnicos, legales o de diseño que limitan y condici
 | R18 | La solución debe completarse dentro del periodo académico 2026-20, según el cronograma de entregas del curso. |
 
 ### 4.2.5 Architectural Concerns
+ 
+**1. Ingesta Confiable de Lecturas en Tiempo Real**
+ 
+Recibir de forma continua las lecturas de miles de sensores sin perder información es la base de todo el sistema. Se aborda mediante un **gateway de ingesta MQTT** que reenvía las lecturas a **RabbitMQ** con colas durables y confirmación de mensajes (acknowledgement), de modo que una lectura solo se descarta de la cola cuando el microservicio de **Consumo y Telemetría** la ha registrado correctamente.
+ 
+**2. Heterogeneidad de los Sensores de Terceros**
+ 
+Al no contar con hardware propio, HydroSmart debe convivir con sensores y medidores de distintos fabricantes y formatos. Se resuelve con el patrón **Adapter** como capa anticorrupción en el gateway de ingesta, traduciendo cada formato a un contrato canónico de lectura (meterId, timestamp, litros acumulados).
+ 
+**3. Precisión en la Detección de Fugas y Anomalías**
+ 
+Una alerta falsa reduce la confianza del usuario, y una fuga no detectada anula la propuesta de valor. Se aborda con el patrón **Strategy** en el microservicio de **Alertas y Notificaciones**, combinando umbrales configurables con una línea base histórica del consumo de cada hogar por franja horaria.
+ 
+**4. Lecturas Perdidas, Duplicadas o Fuera de Orden**
+ 
+Los cortes de conexión pueden provocar reenvíos o vacíos en los datos. Se aplica el patrón **Idempotent Consumer**, registrando cada lectura con la clave única (meterId, timestamp), y se trabaja con el valor **acumulado** del medidor, lo que permite recalcular el consumo del intervalo aunque se pierdan lecturas intermedias.
+ 
+**5. Conversión Confiable del Consumo a Soles**
+ 
+El valor económico mostrado debe coincidir con lo que el usuario pagará. Las tarifas se modelan como datos **parametrizados y versionados** por empresa prestadora, categoría, rango de consumo y fecha de vigencia, y los montos se presentan siempre como estimaciones referenciales del recibo.
+ 
+**6. Entrega Garantizada y No Invasiva de Alertas**
+ 
+Las alertas deben llegar a tiempo sin saturar al usuario. Se utilizan reintentos con espera exponencial, un canal alternativo por correo mediante **SendGrid** cuando **Firebase Cloud Messaging** falla, y la agrupación de alertas de una misma anomalía respetando las preferencias configuradas por el usuario (US10).
+ 
+**7. Seguridad Perimetral y Validación de Identidad**
+ 
+La protección contra accesos no autorizados se resuelve centralizando la validación de los **JWT de Firebase Authentication** en el **API Gateway**, que actúa como filtro de seguridad antes de que la petición llegue a los microservicios internos.
+ 
+**8. Privacidad de los Datos de Consumo entre Arrendador e Inquilino**
+ 
+Los patrones de consumo revelan hábitos y horarios de ocupación del hogar. Arquitectónicamente, se debe asegurar que el arrendador solo acceda al consumo de sus propias unidades, que el inquilino solo vea la unidad que ocupa y que el tratamiento de los datos cumpla la **Ley N.° 29733**, con consentimiento informado y opciones de gestión de datos (US17).
+ 
+**9. Almacenamiento y Consulta Eficiente de Series de Tiempo**
+ 
+El volumen de lecturas crece de forma constante. Se almacenan las lecturas crudas en **MongoDB** como series de tiempo y se consolidan agregados diarios, semanales y mensuales en **Analíticas y Reportes** (modelo de lectura **CQRS**) para el historial, la proyección y los reportes, aplicando una política de retención de lecturas crudas según el plan del usuario.
+ 
+**10. Disponibilidad del Monitoreo ante Fallas de Servicios Secundarios**
+ 
+El usuario debe seguir viendo su consumo y recibiendo alertas aunque servicios no críticos, como **Analíticas y Reportes** o **Ahorro y Recomendaciones**, estén caídos. Se utiliza **RabbitMQ** para desacoplar los servicios mediante comunicación asíncrona basada en eventos de dominio.
+ 
+**11. Gestión de Planes de Suscripción (Monetización)**
+ 
+Controlar que cada usuario acceda solo a las funcionalidades de su plan: por ejemplo, la gestión de múltiples unidades es exclusiva del plan Arrendador. Esta preocupación es atendida por el microservicio de **Suscripciones**, que procesa los pagos mediante la pasarela externa (**Stripe o Culqi**) y sincroniza el estado del plan con las capacidades habilitadas en **Propiedades y Unidades** y **Ahorro y Recomendaciones**.
+ 
+**12. Trazabilidad y Evidencia del Consumo**
+ 
+Los reportes por unidad sirven como evidencia ante disputas con inquilinos. Las lecturas se registran como datos **inmutables** (solo inserción) con marca de tiempo del medidor y del servidor, y cada reporte generado en **Analíticas y Reportes** conserva el periodo y la fuente de datos utilizada.
+ 
+**13. Mantenibilidad mediante Bounded Contexts**
+ 
+Evitar que un cambio en la gestión de propiedades afecte la detección de fugas. Siguiendo el enfoque **DDD**, cada microservicio tiene su propio contexto delimitado y base de datos independiente, y se comunica con los demás mediante contratos de API o eventos de dominio, facilitando actualizaciones aisladas.
 
 ## 4.3 ADD Iterations
 
