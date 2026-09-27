@@ -210,6 +210,173 @@ Como arrendador, quiero generar reportes de consumo por unidad para tener eviden
 **Impacto Arquitectónico:** Define que el microservicio de Analíticas y Reportes genere el documento descargable de forma asíncrona a partir de los agregados de consumo de la unidad y el periodo seleccionados, lo almacene en el servicio de almacenamiento en la nube (AWS S3) y registre su referencia en la entidad `reports`. Las lecturas utilizadas como evidencia no pueden modificarse después de registradas, lo que garantiza la validez del reporte ante una disputa.
 
 ### 4.2.3 Quality Attribute Scenarios
+ 
+En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la arquitectura de la plataforma HydroSmart. Estos escenarios constituyen una herramienta fundamental de diseño y validación, ya que permiten operativizar y hacer completamente medibles los requerimientos no funcionales del sistema, tales como el rendimiento, la disponibilidad, la seguridad, la escalabilidad y la usabilidad. Al desglosar cada situación en componentes específicos (fuente, estímulo, entorno, artefacto, respuesta y medida de la respuesta), se establecen criterios de prueba claros y verificables. De esta manera, se asegura que las decisiones arquitectónicas implementadas soporten las exigencias operativas del monitoreo del consumo de agua y estén directamente alineadas con el cumplimiento de las User Stories críticas del proyecto.
+ 
+**Escenario 1: Disponibilidad - Falla de un nodo de Consumo y Telemetría**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Infraestructura de red o fallo de hardware interno. |
+| **Estímulo** | Un nodo que aloja una instancia del microservicio de Consumo y Telemetría deja de responder repentinamente mientras se reciben lecturas de los sensores. |
+| **Entorno** | Tiempo de ejecución, bajo operación normal con usuarios consultando su dashboard. |
+| **Artefacto** | Infraestructura de servidores y microservicio de Consumo y Telemetría. |
+| **Respuesta** | El sistema emplea Redundancia Activa: el balanceador de carga detecta la falla mediante health checks y redirige las peticiones hacia las instancias activas, mientras las lecturas pendientes permanecen en las colas durables de RabbitMQ hasta ser consumidas por otra instancia. |
+| **Medida de la respuesta** | La conmutación hacia las instancias de respaldo se realiza en menos de 5 segundos, sin pérdida de lecturas, garantizando una disponibilidad del 99.9 % del servicio de monitoreo. |
+ 
+**Escenario 2: Disponibilidad - Pérdida de conexión de un medidor**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Sensor IoT o medidor inteligente de terceros. |
+| **Estímulo** | El medidor de una vivienda deja de enviar lecturas por un corte de energía o pérdida de conectividad WiFi. |
+| **Entorno** | Tiempo de ejecución, operación normal. |
+| **Artefacto** | Microservicio de Consumo y Telemetría (entidad `meters`) y dashboard del usuario. |
+| **Respuesta** | El sistema aplica la táctica Heartbeat: cada medidor debe reportar al menos una señal periódica; si no se recibe, el medidor pasa al estado OFFLINE, el dashboard muestra el mensaje de datos no disponibles junto con la última lectura válida y se notifica al usuario. |
+| **Medida de la respuesta** | La desconexión se detecta y se refleja en el dashboard en un máximo de 5 minutos desde la última señal recibida, en el 100 % de los casos. |
+ 
+**Escenario 3: Rendimiento - Alerta de consumo inusual**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Sensor IoT del usuario. |
+| **Estímulo** | Llega una lectura cuyo consumo supera el umbral configurado por el usuario. |
+| **Entorno** | Tiempo de ejecución, carga normal de lecturas. |
+| **Artefacto** | Microservicio de Alertas y Notificaciones y servicio externo Firebase Cloud Messaging. |
+| **Respuesta** | El sistema procesa el evento `ConsumptionRecorded` de forma asíncrona, evalúa las reglas del usuario, registra la alerta y envía la notificación push con el detalle de la anomalía. |
+| **Medida de la respuesta** | La notificación push llega al dispositivo del usuario en menos de 10 segundos desde la recepción de la lectura en el 95 % de los casos. |
+ 
+**Escenario 4: Rendimiento / Fiabilidad - Detección de posible fuga**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Sensor IoT del usuario. |
+| **Estímulo** | Se registra un flujo de agua continuo durante un periodo prolongado fuera del horario habitual del hogar (por ejemplo, un inodoro malogrado durante la madrugada). |
+| **Entorno** | Tiempo de ejecución, horario nocturno con bajo consumo esperado. |
+| **Artefacto** | Microservicio de Alertas y Notificaciones (estrategia de detección de fugas). |
+| **Respuesta** | El sistema compara el patrón de consumo con la línea base histórica del usuario por franja horaria y, al confirmar el flujo continuo durante el periodo configurado (30 minutos por defecto), publica el evento `LeakDetected` y genera una alerta de tipo POSIBLE_FUGA indicando la zona del medidor. |
+| **Medida de la respuesta** | La alerta se emite en menos de 1 minuto después de cumplido el periodo configurado, con una tasa de falsos positivos menor al 5 % en las pruebas de validación. |
+ 
+**Escenario 5: Escalabilidad - Ingesta masiva de lecturas**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Sensores IoT de múltiples usuarios. |
+| **Estímulo** | Al crecer la base de usuarios hacia la meta de 800 usuarios activos, miles de sensores envían lecturas de forma simultánea cada 15 segundos. |
+| **Entorno** | Tiempo de ejecución, pico de tráfico de lecturas en horas de mayor consumo (mañana, noche y horarios de riego). |
+| **Artefacto** | Gateway de ingesta, RabbitMQ y microservicio de Consumo y Telemetría. |
+| **Respuesta** | El sistema utiliza Comunicación Asíncrona mediante colas de mensajes: las lecturas se encolan en RabbitMQ y son procesadas por consumidores competidores que escalan horizontalmente según el tamaño de la cola. |
+| **Medida de la respuesta** | El sistema soporta la ingesta de hasta 20,000 lecturas por minuto sin pérdida de mensajes y con un retraso de procesamiento menor a 5 segundos. |
+ 
+**Escenario 6: Rendimiento - Carga del dashboard de consumo**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Usuario (propietario, arrendador o inquilino). |
+| **Estímulo** | El usuario abre la aplicación móvil para revisar su consumo del día en litros y soles. |
+| **Entorno** | Tiempo de ejecución, bajo condiciones normales de operación. |
+| **Artefacto** | Aplicación móvil y microservicios de Consumo y Telemetría y Analíticas y Reportes. |
+| **Respuesta** | El sistema emplea la táctica de Mantener múltiples copias de datos: la última lectura de cada medidor y los agregados del día se mantienen precalculados (modelo de lectura CQRS), evitando recalcular el consumo a partir de las lecturas crudas en cada consulta. |
+| **Medida de la respuesta** | El dashboard se carga con el consumo actual, su equivalente en soles y el avance de la meta en menos de 2 segundos. |
+ 
+**Escenario 7: Rendimiento - Cálculo de la proyección mensual**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Usuario. |
+| **Estímulo** | El usuario solicita la proyección estimada del monto a pagar al cierre del mes. |
+| **Entorno** | Tiempo de ejecución, usuario con al menos una semana de consumo registrado. |
+| **Artefacto** | Microservicio de Analíticas y Reportes (entidad `daily_consumption`) y tarifas de Consumo y Telemetría. |
+| **Respuesta** | El sistema calcula la proyección a partir de los agregados diarios ya consolidados y aplica la estructura tarifaria por rangos vigente, sin procesar el historial completo de lecturas. |
+| **Medida de la respuesta** | La proyección en soles se muestra en menos de 3 segundos, con una desviación menor al 10 % respecto al recibo real al cierre del periodo. |
+ 
+**Escenario 8: Seguridad - Acceso con token expirado**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Consumidor del API (usuario, sistema externo o atacante). |
+| **Estímulo** | Se realiza una petición hacia un endpoint protegido (por ejemplo, consulta del consumo de una unidad) utilizando un token JWT caducado o alterado. |
+| **Entorno** | Tiempo de ejecución, intento de consumo del servicio. |
+| **Artefacto** | API Gateway y microservicio IAM. |
+| **Respuesta** | El sistema aplica las tácticas de Autenticar actores y Limitar el acceso, validando criptográficamente la firma y la fecha de expiración del JWT emitido por Firebase Authentication en el API Gateway. La petición es rechazada antes de llegar a los microservicios internos. |
+| **Medida de la respuesta** | El sistema otorga 0 % de acceso a las funcionalidades protegidas cuando el token es inválido o ha expirado, respondiendo con estado 401. |
+ 
+**Escenario 9: Seguridad / Privacidad - Acceso a datos de otra unidad**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Usuario autenticado (arrendador o inquilino). |
+| **Estímulo** | Un usuario intenta consultar el consumo o los reportes de una unidad que no le pertenece o a la que no está asignado, modificando el identificador en la petición. |
+| **Entorno** | Tiempo de ejecución, operación normal. |
+| **Artefacto** | Microservicios de Propiedades y Unidades, Consumo y Telemetría, y Analíticas y Reportes. |
+| **Respuesta** | El sistema aplica la táctica de Autorizar actores, verificando en cada operación la relación de propiedad (`owner_id`) o de asignación (`unit_tenants`) entre el usuario y la unidad, y registra el intento en el log de auditoría. |
+| **Medida de la respuesta** | El 100 % de los intentos de acceso a unidades ajenas es rechazado con estado 403 y queda registrado, sin exponer datos de consumo de terceros. |
+ 
+**Escenario 10: Seguridad - Suplantación de un sensor**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Agente externo no autorizado. |
+| **Estímulo** | Un dispositivo no registrado intenta publicar lecturas falsas en el tópico MQTT de un medidor existente. |
+| **Entorno** | Tiempo de ejecución, ingesta de lecturas. |
+| **Artefacto** | Gateway de ingesta MQTT y microservicio de Consumo y Telemetría. |
+| **Respuesta** | El sistema aplica la táctica de Autenticar actores a nivel de dispositivo: cada sensor se conecta mediante MQTT sobre TLS con credenciales únicas emitidas al vincularlo, y el gateway solo le permite publicar en su propio tópico. |
+| **Medida de la respuesta** | El 100 % de las conexiones con credenciales inválidas es rechazado y ninguna lectura falsa llega a ser registrada en `consumption_readings`. |
+ 
+**Escenario 11: Disponibilidad - Falla del proveedor de notificaciones push**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Servicio externo Firebase Cloud Messaging. |
+| **Estímulo** | El proveedor de notificaciones push no responde o devuelve error al enviar una alerta de posible fuga. |
+| **Entorno** | Tiempo de ejecución, envío de alertas críticas. |
+| **Artefacto** | Microservicio de Alertas y Notificaciones. |
+| **Respuesta** | El sistema aplica reintentos con espera exponencial y, si el envío continúa fallando, utiliza el canal alternativo de correo electrónico mediante SendGrid, manteniendo la alerta visible en la aplicación. |
+| **Medida de la respuesta** | El 99 % de las alertas críticas llega al usuario por al menos un canal en menos de 5 minutos, aun con el proveedor push no disponible. |
+ 
+**Escenario 12: Usabilidad - Configuración de una meta de ahorro**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Inquilino (estudiante o joven arrendatario). |
+| **Estímulo** | El usuario desea establecer su meta de consumo mensual ingresando únicamente su presupuesto disponible en soles. |
+| **Entorno** | Tiempo de ejecución, primer uso de la sección de metas. |
+| **Artefacto** | Aplicación móvil y microservicio de Ahorro y Recomendaciones. |
+| **Respuesta** | El sistema calcula automáticamente la meta equivalente en litros con la tarifa vigente y muestra el resultado con indicadores visuales, sin que el usuario necesite conocer conceptos técnicos como metros cúbicos o rangos tarifarios. |
+| **Medida de la respuesta** | El 90 % de los usuarios de prueba configura su meta en menos de 1 minuto y en no más de 3 pasos, sin solicitar ayuda. |
+ 
+**Escenario 13: Modificabilidad - Actualización de tarifas de agua**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Administrador de la plataforma. |
+| **Estímulo** | SUNASS aprueba un reajuste tarifario para SEDAPAL o se incorpora una nueva empresa prestadora en otra región del país. |
+| **Entorno** | Tiempo de ejecución, operación normal. |
+| **Artefacto** | Microservicio de Consumo y Telemetría (entidades `tariffs` y `tariff_ranges`). |
+| **Respuesta** | Las tarifas se gestionan como datos parametrizados y versionados por fecha de vigencia, no como lógica codificada, de modo que el administrador registra la nueva estructura sin modificar ni volver a desplegar los microservicios. |
+| **Medida de la respuesta** | La nueva tarifa se aplica a los cálculos en soles en menos de 1 día hábil, con 0 líneas de código modificadas. |
+ 
+**Escenario 14: Interoperabilidad - Integración de un nuevo modelo de sensor**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Equipo de desarrollo. |
+| **Estímulo** | Se requiere dar soporte a un nuevo fabricante de medidores inteligentes cuyo formato de lectura es distinto al de los medidores ya integrados. |
+| **Entorno** | Tiempo de diseño y desarrollo. |
+| **Artefacto** | Gateway de ingesta y microservicio de Consumo y Telemetría. |
+| **Respuesta** | El sistema aplica el patrón Adapter y la táctica de Definiciones de interfaces compartidas: cada fabricante cuenta con un adaptador que traduce su formato al contrato canónico de lectura (`meterId`, `timestamp`, litros acumulados), sin modificar la lógica de dominio. |
+| **Medida de la respuesta** | La integración del nuevo fabricante se completa en un máximo de 3 días de desarrollo, modificando únicamente el nuevo adaptador. |
+ 
+**Escenario 15: Rendimiento - Generación de reporte por unidad**
+ 
+| Elemento | Descripción |
+|---|---|
+| **Fuente del estímulo** | Arrendador. |
+| **Estímulo** | El arrendador solicita el reporte descargable del consumo de una unidad para un periodo de tres meses. |
+| **Entorno** | Tiempo de ejecución, operación normal. |
+| **Artefacto** | Microservicio de Analíticas y Reportes y servicio externo AWS S3. |
+| **Respuesta** | El sistema procesa la solicitud de forma asíncrona: registra el reporte en estado EN_PROCESO, lo genera a partir de los agregados de consumo, lo almacena en AWS S3 y notifica al arrendador cuando está disponible, sin bloquear la interfaz. |
+| **Medida de la respuesta** | El reporte queda disponible para descarga en menos de 30 segundos y la solicitud inicial se confirma en menos de 1 segundo. |
 
 ### 4.2.4 Constraints
 
