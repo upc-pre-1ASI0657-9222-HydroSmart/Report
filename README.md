@@ -649,8 +649,61 @@ Considerando las necesidades funcionales de HydroSmart y la estructura definida 
 - HydroSmart organiza la lógica del dominio mediante bounded contexts, separando responsabilidades como User Management, Consumption Analytics / Reporting, Consumption Monitoring, Anomaly Detection, Notification y Saving Goals. Esta organización reduce el acoplamiento entre funcionalidades y facilita trabajar sobre una parte específica del sistema.
 - El backend se implementa con .NET y utiliza MySQL para la persistencia de la información. La comunicación con la aplicación se realiza mediante una API REST, cuyos endpoints fueron documentados y probados con Swagger. Esto establece una interfaz uniforme entre el frontend y los servicios del sistema.
 - La solución también mantiene preparada la gestión de dispositivos para una futura integración con sensores o medidores inteligentes, sin hacer que el funcionamiento inicial dependa de hardware especializado.
+
 #### 4.3.1.5 Instantiate Architectural Elements, Allocate Responsibilities, and Define Interfaces
 
+A partir de las decisiones planteadas en la sección anterior, se concretan los principales elementos que forman parte de la arquitectura de HydroSmart. La organización se basa en la separación entre la aplicación web, el backend y la persistencia, mientras que dentro del backend las funcionalidades se distribuyen según los contextos identificados en el diseño del dominio.
+
+**Elementos Arquitectónicos Instanciados**
+
+Los elementos principales que participan en la solución son los siguientes:
+
+| Elemento | Responsabilidad | Interfaz de comunicación |
+|---|---|---|
+| **User Management** | Gestiona el registro de usuarios, autenticación, cuentas y operaciones relacionadas con la información del usuario. | API REST con la Web App y acceso a MySQL |
+| **Consumption Analytics / Reporting** | Procesa la información histórica de consumo y genera reportes y comparativos para su visualización. | API REST con la Web App y acceso a MySQL |
+| **Consumption Monitoring** | Administra la información asociada al monitoreo del consumo y a los puntos de consumo registrados. | API REST y comunicación con la información persistida |
+| **Anomaly Detection** | Analiza los patrones de consumo para identificar comportamientos inusuales o posibles fugas. | Servicios internos del backend y acceso a los datos de consumo |
+| **Notification** | Gestiona las alertas, mensajes y sugerencias que deben ser comunicados al usuario. | API REST con la Web App y acceso a MySQL |
+| **Saving Goals** | Administra las metas de ahorro, el progreso alcanzado y las recomendaciones relacionadas con el consumo. | API REST con la Web App y acceso a MySQL |
+| **Web App** | Presenta las funcionalidades disponibles para el usuario, incluyendo Dashboard, Profile, Devices, Reports, Settings y Notifications. | HTTP/REST con el API Backend |
+| **MySQL** | Mantiene almacenada la información de usuarios, perfiles, dispositivos, consumo, configuraciones y demás datos necesarios para el funcionamiento de la plataforma. | Acceso desde los servicios del backend |
+
+La Web App constituye el punto de interacción principal con los usuarios y concentra las vistas diseñadas para propietarios de viviendas e inquilinos. Desde ella se puede acceder al Dashboard, consultar el historial, visualizar reportes, revisar alertas, modificar el perfil, administrar dispositivos y configurar preferencias.
+
+El **API Backend** concentra la lógica necesaria para atender las solicitudes realizadas desde la aplicación. En el Sprint 3 se implementaron controladores REST, servicios y persistencia con MySQL, además de endpoints para autenticación, usuarios, perfiles, dispositivos, analytics y notificaciones.
+
+**Servicios externos integrados:**
+
+Dentro del contexto general de la solución también se contemplan integraciones externas relacionadas con el funcionamiento de HydroSmart, principalmente para el envío de notificaciones, procesamiento de pagos y recepción de información proveniente de sensores IoT. Estas relaciones forman parte del contexto del sistema y permiten ampliar sus capacidades sin concentrar todas las funciones dentro del núcleo de la plataforma.
+
+**Infraestructura de persistencia:**
+
+La información de HydroSmart se almacena en **MySQL**, que constituye la base de persistencia utilizada por el backend. Durante el Sprint 3 se configuraron recursos de persistencia para módulos como Devices, Profile y Settings, además de consultas y agregaciones utilizadas por Analytics.
+
+**Asignación de responsabilidades**
+
+Cada componente mantiene una función concreta dentro del sistema para evitar concentrar toda la lógica en una sola parte. **User Management** se ocupa de las cuentas y autenticación; **Consumption Monitoring** trabaja con los datos de consumo; **Consumption Analytics / Reporting** transforma esos datos en información histórica y reportes; **Anomaly Detection** identifica posibles irregularidades; **Notification** comunica alertas y mensajes; y **Saving Goals** administra metas y recomendaciones.
+
+La **Web App** queda responsable de la interacción y presentación de la información, mientras que el backend procesa las solicitudes y coordina el acceso a MySQL. Así, cada parte cumple una responsabilidad específica y la comunicación entre ellas se mantiene controlada mediante interfaces definidas.
+
+**Definición de interfaces**
+
+La comunicación de HydroSmart se basa principalmente en intercambios síncronos mediante HTTP/REST. Los endpoints documentados en Swagger establecen las operaciones disponibles para cada recurso y permiten mantener una comunicación uniforme entre la aplicación web y el backend.
+
+| Interfaz | Protocolo | Tipo | Seguridad / Notas | US / Contexto |
+|---|---|---|---|---|
+| **Web App → API Backend** | HTTP / REST | Síncrona | Las solicitudes son atendidas por los controladores del backend. | Todas las funcionalidades de la aplicación |
+| **API Backend → MySQL** | Conexión de base de datos | Síncrona | El acceso se realiza desde la capa de persistencia del backend. | Usuarios, consumo, dispositivos, configuraciones |
+| **Web App → User Management** | REST | Síncrona | Permite ejecutar operaciones de autenticación y consulta de usuarios. | Registro e inicio de sesión |
+| **Web App → Analytics / Reporting** | REST | Síncrona | Devuelve información procesada para la interfaz. | Dashboard, historial y comparativos |
+| **Web App → Devices** | REST | Síncrona | Permite registrar, consultar y actualizar dispositivos. | Gestión de dispositivos |
+| **Web App → Notification** | REST | Síncrona | Consulta y gestiona las notificaciones del usuario. | Alertas y notificaciones |
+| **Backend → Servicios relacionados con IoT** | Interfaz de integración | Según servicio | Considerada para la futura recepción de información desde sensores o medidores. | Consumption Monitoring / Devices |
+
+Los endpoints implementados reflejan esta organización. Existen operaciones específicas para autenticación, perfiles, usuarios, dispositivos, analytics y notificaciones, lo que permite que cada solicitud sea dirigida hacia la funcionalidad correspondiente sin mezclar responsabilidades.
+
+En conjunto, esta distribución permite que HydroSmart mantenga una estructura organizada entre presentación, procesamiento y persistencia, mientras que los bounded contexts delimitan las responsabilidades del dominio. Además, la API REST funciona como punto de comunicación entre la aplicación y los servicios del backend, facilitando la integración de nuevas funcionalidades conforme evolucione la plataforma.
 #### 4.3.1.6 Sketch Views (C4 & UML) and Record Design Decisions
 
 #### 4.3.1.7 Analysis of Current Design and Review Iteration Goal (Kanban Board)
