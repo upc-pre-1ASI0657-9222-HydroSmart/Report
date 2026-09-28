@@ -966,37 +966,91 @@ Evitar que un cambio en la gestión de propiedades afecte la detección de fugas
 
 ## 4.3 ADD Iterations
 
-### 4.3.1 Iteration 1: <Iteration Name>
+### 4.3.1 Iteration 1: Establecimiento de la Base Arquitectónica y Pipeline de Telemetría (Sprint 1)
 
-#### 4.3.1.1 Architectural Design Backlog N
+#### 4.3.1.1 Architectural Design Backlog 1
+
+Para esta primera iteración, se consolidan los requerimientos funcionales, atributos de calidad, restricciones y objetivos de negocio más críticos que guiarán las decisiones iniciales de diseño arquitectónico de HydroSmart. En esta fase temprana del desarrollo, el foco principal es validar la viabilidad técnica del núcleo de la propuesta de valor: la ingesta continua y de baja latencia de telemetría IoT desde medidores inteligentes de caudal, la detección oportuna de fugas en tiempo real y el control de acceso seguro y aislado por unidad habitacional.
+
+Por ello, este backlog aísla y prioriza exclusivamente aquellos drivers arquitectónicos que resultan indispensables para desplegar una primera versión operativa, robusta y escalable del sistema. A continuación, se detallan los elementos seleccionados para este primer sprint y la justificación estratégica detrás de su prioridad:
+
+| Tipo de Driver | Driver Seleccionado | Razón |
+|---|---|---|
+| **Objetivo de Negocio** | Validar la propuesta de valor de HydroSmart (Misión de AquaPulse) | El núcleo del producto —permitir a los hogares monitorear su consumo hídrico en tiempo real y mitigar el desperdicio económico por fugas no detectadas— debe operar de manera confiable y validarse técnicamente desde la primera iteración. |
+| **Requisito Funcional** | US-01 & US04: Monitoreo y visualización de consumo de caudal en tiempo real | Es la interacción primaria y el valor fundamental que percibe el usuario al consultar el estado de consumo de su vivienda o unidad desde el dashboard web y móvil. |
+| **Requisito Funcional** | US-02 & US09: Detección temprana y alerta inmediata de posibles fugas de agua | Representa la funcionalidad protectora más crítica de la plataforma; si una fuga no se detecta oportunamente, la propuesta de valor de ahorro y prevención se anula. |
+| **Requisito Funcional** | US-06 & US01: Registro e inicio de sesión seguro con Firebase Authentication y roles (Propietario, Inquilino, Administrador) | Es el mecanismo habilitador de seguridad transversal; garantiza que cada usuario acceda exclusivamente a los datos de sus propias unidades. |
+| **Requisito Funcional** | US11: Registro de propiedades, unidades y vinculación 1:1 activa de medidores físicos (R14) | Modela la jerarquía esencial del dominio (`Usuario -> Propiedad -> Unidad -> Medidor`), sin la cual es imposible asociar una lectura de telemetría a un usuario responsable. |
+| **Atributo de Calidad** | Performance y Latencia (QAS 4 / Escenario 4 & QAS 3): Detección y notificación push de fugas en menos de 15 segundos ($p95$) | La detección oportuna de anomalías requiere un flujo no bloqueante desde el sensor hasta el dispositivo móvil del usuario para evitar daños irreversibles o sobrecostos en el recibo. |
+| **Atributo de Calidad** | Performance y Escalabilidad (QAS 5 / Escenario 5): Ingesta continua de hasta 20 000 lecturas/min sin degradación | La plataforma debe dimensionarse para absorber un flujo continuo de telemetría sin cuellos de botella en la persistencia ni en el procesamiento. |
+| **Atributo de Calidad** | Seguridad y Privacidad (QAS 9 / Escenario 9 & R11): Aislamiento de datos de consumo y validación estricta de token JWT y roles (código 403 ante acceso no autorizado) | Cumplir con la Ley N.° 29733 de Protección de Datos Personales, impidiendo que terceros o inquilinos ajenos visualicen patrones de consumo y horarios de ocupación del hogar. |
+| **Atributo de Calidad** | Disponibilidad y Resiliencia (QAS 1 / Escenario 1 & QAS 2): Redundancia activa y colas durables en RabbitMQ ante caídas, con detección de medidores desconectados (Heartbeat < 5 min) | El flujo de datos hídricos no puede perderse por fallas temporales de red o de instancias de cómputo. |
+| **Restricción** | R01, R03 & R08: Autenticación delegada a Firebase Auth, arquitectura microservicios bajo DDD con bases independientes, y persistencia políglota (MySQL + MongoDB) | Define el estándar arquitectónico del sistema, evitando acoplamientos monolíticos y degradación de base de datos transaccional por lecturas de sensores. |
+| **Restricción** | R04, R09 & R10: API RESTful JSON con OpenAPI 3.1 vía API Gateway, ingesta IoT vía MQTT sobre TLS y mensajería interna con RabbitMQ | Estandariza los protocolos de comunicación interna y externa bajo canales seguros y contratos explícitos. |
+| **Preocupación Arquitectural** | Concern 1 & Concern 4: Ingesta confiable de telemetría en tiempo real y procesamiento idempotente (`meterId` + `timestamp`) | Asegura que ante caídas o reenvíos de paquetes de red de los medidores, las lecturas no se dupliquen ni alteren el cálculo del consumo acumulado. |
+| **Preocupación Arquitectural** | Concern 2: Heterogeneidad de sensores de terceros mediante Adapter Pattern en el Gateway IoT | Permite convivir con diversos fabricantes de hardware sin alterar los contratos canónicos de los microservicios. |
 
 #### 4.3.1.2 Establish Iteration Goal by Selecting Drivers
 
+Para este primer ciclo de desarrollo arquitectónico, el equipo técnico se enfoca en consolidar los pilares que dan vida a la propuesta de valor de HydroSmart. Por ello, se han priorizado los siguientes drivers arquitectónicos:
+
+- **Funcionalidad Core:** Habilitar el flujo crítico de la plataforma: registro y autenticación de usuarios, registro de propiedades y unidades habitacionales, vinculación 1:1 activa de medidores de caudal, ingesta continua de lecturas y detección y notificación inmediata de patrones de fuga en tiempo real.
+- **Performance y Escalabilidad:** Garantizar una latencia de extremo a extremo inferior a 15 segundos ($p95$) entre la recepción de una lectura anómala por el broker MQTT y la entrega de la notificación push en el dispositivo del usuario, soportando además una tasa de ingesta de hasta 20 000 lecturas por minuto en MongoDB Time Series sin degradación de la base transaccional.
+- **Seguridad, Privacidad y Accesos:** Implementar un esquema de autenticación sin estado (*stateless*) mediante tokens JWT emitidos por Firebase Authentication y validación estricta de roles (RBAC) en el API Gateway, asegurando un aislamiento total (100% de rechazos con código HTTP 403) ante cualquier intento de acceso no autorizado a datos de consumo de unidades ajenas, en cumplimiento de la Ley N.° 29733.
+- **Alineamiento Tecnológico y Restricciones:** Sentar las bases del código bajo un enfoque Domain-Driven Design (DDD) y arquitectura de microservicios con bases de datos desacopladas, utilizando .NET REST API para los servicios backend, persistencia políglota (MySQL para datos transaccionales estructurados y MongoDB para telemetría de series de tiempo), y mensajería orientada a eventos mediante RabbitMQ.
+
+**Objetivo de la Iteración:**  
+El objetivo principal de esta primera iteración es diseñar, estructurar y validar la base arquitectónica fundamental de HydroSmart. Al lograr que el pipeline de telemetría IoT capture lecturas de caudal de forma continua e idempotente, que el motor de anomalías detecte posibles fugas con baja latencia y que el control de accesos proteja la información del hogar sobre una arquitectura de microservicios desacoplada y escalable, se comprueba la viabilidad tecnológica del producto y se entrega el primer incremento de valor real y medible para los stakeholders de AquaPulse.
+
 #### 4.3.1.3 Choose One or More Elements of the System to Refine
+
+A fin de satisfacer los drivers arquitectónicos definidos previamente y garantizar la entrega temprana de valor a los stakeholders del proyecto, se han identificado los elementos y bounded contexts críticos que requieren ser diseñados y refinados durante esta primera iteración:
+
+1. **Microservicio de Consumo y Telemetría (Consumption & Telemetry Service):**
+   - Se encarga de procesar el flujo continuo de lecturas crudas de caudal transmitidas por los sensores y medidores inteligentes de terceros a través del gateway de ingesta MQTT.
+   - Aplica el patrón *Idempotent Consumer* utilizando la clave natural (`meterId`, `timestamp`) y el valor de litros acumulados (`accumulatedLiters`) para descartar lecturas duplicadas y tolerar paquetes fuera de orden.
+   - Persiste la telemetría en MongoDB Time Series y publica el evento de dominio `ConsumptionRecorded` a través de RabbitMQ, permitiendo que otros bounded contexts reaccionen sin bloquear el camino crítico de ingesta.
+   - Mantiene una réplica local de solo lectura (`meter_references`) para resolver la unidad, propiedad y usuario propietario asociados a cada medidor sin incurrir en llamadas síncronas entre microservicios.
+
+2. **Microservicio de Alertas y Notificaciones (Alerts & Notifications Service):**
+   - Consume de forma asíncrona los eventos `ConsumptionRecorded` desde RabbitMQ y evalúa las lecturas en tiempo real frente a umbrales configurados y patrones de consumo continuo no habituales (patrón Strategy).
+   - Genera el evento `LeakDetected` al confirmar un patrón anómalo y orquesta el envío de notificaciones push de alta prioridad hacia el dispositivo móvil del usuario mediante Firebase Cloud Messaging (FCM).
+   - Constituye el componente reactivo más valorado por los usuarios para prevenir daños estructurales y sobrecostos por desperdicio hídrico.
+
+3. **Microservicio de Gestión de Identidad (IAM) y API Gateway:**
+   - Centraliza la autenticación delegando la verificación de credenciales a Firebase Authentication y conservando únicamente el identificador único `firebase_uid`.
+   - Administra la asignación de perfiles y roles del sistema (`PROPIETARIO`, `INQUILINO`, `ADMINISTRADOR`) mediante la tabla intermedia `user_roles`.
+   - El API Gateway actúa como único punto de entrada (*Reverse Proxy*), validando la firma y vigencia del token JWT y verificando los permisos de rol antes de enrutar las peticiones hacia los microservicios internos.
+
+4. **Microservicio de Propiedades y Unidades (Properties & Units Service):**
+   - Modela y administra la jerarquía de dominio `Usuario -> Propiedad -> Unidad -> Medidor`, permitiendo a los propietarios registrar sus viviendas y estructurar sus unidades habitacionales.
+   - Implementa el constraint de unicidad activa R14 mediante la entidad `unit_meter_links`, asegurando que un medidor físico solo pueda estar vinculado a una unidad a la vez (`unlinked_at IS NULL`).
+   - Publica los eventos de dominio `MeterLinkedToUnit` y `MeterUnlinked`, alimentando de forma eventual la réplica `meter_references` del microservicio de Consumo y Telemetría.
+
+La implementación conjunta de estos cuatro componentes y del API Gateway conforma el núcleo estructural del sistema. Al habilitar la trazabilidad completa desde el medidor hasta el usuario propietario y permitir la detección inmediata de fugas bajo un esquema seguro y escalable, se valida de inmediato la factibilidad arquitectónica de HydroSmart.
 
 #### 4.3.1.4 Choose One or More Design Concepts That Satisfy the Selected Drivers
 
-Considerando las necesidades funcionales de HydroSmart y los atributos de calidad definidos previamente, se seleccionan conceptos arquitectónicos que permitan mantener una comunicación organizada entre la aplicación web, la aplicación móvil, la lógica del sistema y la información almacenada. La propuesta toma como base el uso de DDD, API REST, separación por bounded contexts, persistencia diferenciada y comunicación asíncrona para la ingesta de telemetría.
+Para dar respuesta a los drivers arquitectónicos priorizados en esta iteración y establecer una base técnica robusta para HydroSmart, se han seleccionado los siguientes conceptos, tecnologías y patrones de diseño que guiarán la construcción de los elementos refinados:
 
-Para evitar que la selección de tecnologías sea arbitraria, se realiza un análisis ADD comparando alternativas. Las tecnologías se eligen en función de su capacidad para satisfacer los atributos de calidad de rendimiento, disponibilidad, escalabilidad, seguridad, privacidad, recuperabilidad y mantenibilidad.
+**Performance y Escalabilidad:**
+- **Persistencia Políglota y Separación de Cargas:** Se desacopla completamente el almacenamiento de telemetría de alto volumen (MongoDB Time Series, optimizado para inserción continua y consultas por rango de tiempo) de la base de datos transaccional (MySQL), garantizando que picos de hasta 20 000 lecturas/min no degraden los tiempos de respuesta del dashboard ni de las operaciones CRUD de usuarios y propiedades.
+- **Comunicación Asíncrona Orientada a Eventos:** La ingesta de datos hídricos mediante MQTT y el desacoplamiento entre microservicios vía colas de RabbitMQ evitan cuellos de botella por llamadas HTTP síncronas en el camino crítico, permitiendo despachar alertas de fuga en menos de 15 segundos ($p95$).
+- **Agregaciones Precalculadas (CQRS):** Las consultas de consumo histórico en el dashboard no recalculan millones de lecturas crudas en tiempo de ejecución, sino que leen datos agregados consolidados de forma asíncrona en `daily_consumption`.
 
-**Performance:**
+**Security y Privacidad:**
+- **Autenticación Delegada y Tokens JWT (Stateless):** Se delega la gestión de credenciales a Firebase Authentication (R01), eliminando el almacenamiento local de contraseñas. El API Gateway valida el token JWT en cada solicitud entrante, protegiendo todos los endpoints privados del backend.
+- **Control de Acceso Basado en Roles (RBAC) y Aislamiento por Unidad:** Se aplican interceptores y políticas de autorización en el API Gateway y controladores backend para verificar que el usuario autenticado sea efectivamente el propietario o el inquilino asignado a la unidad consultada, bloqueando con código 403 el 100% de intentos de acceso indebido (R11, Ley N.° 29733).
+- **Cifrado en Tránsito:** Todo el tráfico entre clientes web/móviles y el API Gateway se cifra mediante HTTPS (TLS 1.3), y la conexión de los sensores y medidores IoT hacia el gateway de ingesta se realiza bajo MQTT sobre TLS (R10).
 
-- La aplicación web y móvil se comunican con el backend mediante APIs REST, permitiendo solicitar únicamente la información necesaria para cada funcionalidad. Esto es importante para las vistas de consumo, historial, reportes y comparativos.
-- El procesamiento de datos de consumo se concentra en el backend, donde se realizan consultas, agregaciones y cálculos para alimentar el dashboard y los reportes.
-- La telemetría de consumo se almacena separadamente de los datos transaccionales para evitar que el alto volumen de lecturas afecte operaciones como login, perfil, dispositivos, metas o suscripciones.
+**Interoperabilidad, Modificabilidad y DDD:**
+- **Arquitectura de Microservicios orientada al Dominio (DDD):** El sistema se estructura en Bounded Contexts independientes con bases de datos propias (R03), implementando Arquitectura en Capas (Presentación, Aplicación, Dominio e Infraestructura) y el patrón Repository, desacoplando las reglas de negocio de los frameworks y proveedores de infraestructura.
+- **Contratos de API Estandarizados (OpenAPI 3.1):** Los microservicios backend exponen interfaces RESTful en formato JSON documentadas exhaustivamente mediante Swagger / OpenAPI 3.1 (R04), garantizando contratos explícitos que facilitan el consumo desacoplado desde la Web App (Angular) y la Mobile App (Flutter).
+- **Capa Anticorrupción y Patrón Adapter:** Las integraciones con servicios externos (Firebase Auth, Firebase Cloud Messaging, Stripe/Culqi, AWS S3 y medidores IoT heterogéneos) se encapsulan mediante adaptadores dedicados, impidiendo que cambios en contratos de terceros contaminen el modelo de dominio interno.
 
-**Security:**
-
-- El acceso a la plataforma contempla autenticación de usuarios y validación de tokens JWT antes de permitir el uso de funcionalidades privadas.
-- Las operaciones relacionadas con usuarios, perfiles, dispositivos, lecturas, notificaciones y reportes se gestionan desde el backend mediante endpoints controlados.
-- La aplicación web y móvil no acceden directamente a las bases de datos; todo intercambio de información pasa por los servicios backend y el API Gateway.
-
-**Interoperabilidad y Modificabilidad:**
-
-- HydroSmart organiza la lógica del dominio mediante bounded contexts, separando responsabilidades como User Management, Devices Management, Consumption Monitoring, Anomaly Detection, Analytics / Reporting, Notifications, Saving Goals y Subscription Management.
-- Las integraciones con servicios externos se encapsulan mediante adaptadores, evitando que el dominio dependa directamente de Firebase, SendGrid, Stripe, AWS S3 o del gateway MQTT.
-- La solución permite incorporar nuevos sensores, canales de notificación o proveedores externos sin modificar el núcleo del dominio.
+**Alta Disponibilidad y Resiliencia:**
+- **Colas Durables y Confirmación de Mensajes (ACK):** En RabbitMQ las lecturas y alertas se configuran en colas persistentes; si un consumidor falla, los mensajes permanecen retenidos hasta que otra instancia disponible los procese (Redundancia Activa, Escenario 1).
+- **Mecanismo de Heartbeat:** Los medidores reportan periódicamente su estado de conexión; ante la ausencia de lecturas durante más de 5 minutos, el medidor se cataloga como OFFLINE en `meter_references`, notificando al usuario en el dashboard (Escenario 2).
 
 **Análisis ADD para la selección de tecnologías**
 
