@@ -4,12 +4,12 @@
 
 ### 4.1.1 Principles Statements
 
-A partir de la visión de negocio de HydroSmart (transformar el consumo de agua doméstico en información accionable en tiempo real que permita a los propietarios, arrendadores y estudiantes prevenir fugas, optimizar el riego y ahorrar dinero) y de la visión arquitectónica de construir una plataforma escalable, segura y de baja latencia capaz de procesar datos provenientes de sensores IoT de forma continua, se definen los siguientes principios generales que guían todas las decisiones de diseño y evolución del sistema a largo plazo:
+A partir de la visión de negocio de HydroSmart (transformar el consumo de agua doméstico en información accionable en tiempo real que permita a los propietarios y estudiantes prevenir fugas, optimizar el riego y ahorrar dinero) y de la visión arquitectónica de construir una plataforma escalable, segura y de baja latencia capaz de procesar datos provenientes de sensores IoT de forma continua, se definen los siguientes principios generales que guían todas las decisiones de diseño y evolución del sistema a largo plazo:
 
 *   **Comunicación asincrónica sobre sincrónica:** La ingesta de lecturas de consumo (caudal de agua) y la generación de alertas se basan en mecanismos no bloqueantes y orientados a eventos. Se emplea un Message Broker para desacoplar la recepción de telemetría de los sensores del procesamiento de anomalías y la actualización de analíticas, evitando que picos de lecturas (por ejemplo, en horas punta de riego) degraden la experiencia del usuario.
 *   **Uso de bibliotecas y frameworks con soporte comercial o comunidad activa:** Se priorizan tecnologías con ciclos de actualización claros y ecosistemas maduros. La autenticación se delega a Firebase Authentication; las notificaciones push se gestionan mediante Firebase Cloud Messaging; el procesamiento de pagos de suscripciones se delega a una pasarela como Stripe o Culqi y la documentación de API se estandariza bajo OpenAPI 3.1. Este principio garantiza la sostenibilidad técnica del proyecto a largo plazo.
 *   **Monitoreo en tiempo real como eje central del diseño:** La lectura y el procesamiento del consumo hídrico constituyen el activo principal de la plataforma. Todos los servicios que involucran visualización de consumo, detección de fugas y generación de recomendaciones se diseñan priorizando la baja latencia entre la lectura del sensor y la notificación al usuario, por encima de cualquier otra consideración de rendimiento.
-*   **Seguridad como principio transversal:** La seguridad se aplica en cada componente del sistema, no como una capa adicional. Se delega la gestión de identidad a Firebase Authentication, se valida el rol del usuario (propietario, arrendador, inquilino o administrador) en cada petición, y el acceso a los datos de consumo de una unidad o vivienda queda restringido exclusivamente a su propietario, arrendador asociado o administrador autorizado.
+*   **Seguridad como principio transversal:** La seguridad se aplica en cada componente del sistema, no como una capa adicional. Se delega la gestión de identidad a Firebase Authentication, se valida el rol del usuario (propietario, inquilino o administrador) en cada petición, y el acceso a los datos de consumo de una unidad o vivienda queda restringido exclusivamente a su propietario o administrador autorizado.
 *   **Dominio sobre implementación técnica (DDD):** El diseño parte del modelo de negocio y no de los detalles técnicos. Se aplica Domain-Driven Design para organizar el sistema en Bounded Contexts claros: Gestión de Identidad (IAM), Propiedades y Unidades, Consumo y Telemetría, Alertas y Notificaciones, Ahorro y Recomendaciones, Analíticas y Reportes, y Suscripciones. Cada contexto evoluciona de forma independiente sin comprometer la coherencia del sistema.
 *   **Integridad y trazabilidad de las lecturas de consumo:** La lectura de consumo es el invariante más crítico de la plataforma: una pérdida o duplicación de datos afecta directamente la confianza del usuario en las alertas y en los reportes de ahorro. Toda lectura recibida desde un sensor se procesa de forma idempotente (evitando conteos duplicados ante reenvíos de red) y se persiste de manera transaccional antes de publicar cualquier evento derivado.
 *   **Separación de responsabilidades mediante arquitectura en capas:** El sistema se estructura en capas claras: presentación, aplicación, dominio e infraestructura, separando la lógica de negocio de los frameworks, los proveedores externos y los mecanismos de persistencia. El patrón Repository abstrae el acceso a datos de las reglas del dominio, facilitando cambios en la capa de persistencia sin afectar la lógica de negocio.
@@ -21,7 +21,7 @@ A partir de la visión de negocio de HydroSmart (transformar el consumo de agua 
 
 Para el desarrollo de HydroSmart se adopta un enfoque arquitectónico orientado a la escalabilidad, el procesamiento en tiempo real y la alta disponibilidad, debido a la naturaleza continua de los datos generados por los sensores de consumo de agua y a la necesidad de notificar anomalías (fugas, consumos excesivos) de forma casi inmediata.
 
-Como principio rector, se emplea una arquitectura basada en **Domain-Driven Design (DDD)**, permitiendo modelar de forma precisa los subdominios clave del sistema: Gestión de Identidad, Propiedades y Unidades, Consumo y Telemetría, Alertas y Notificaciones, Ahorro y Recomendaciones, Analíticas y Reportes, y Suscripciones. Este enfoque facilita la alineación entre la lógica de negocio y la implementación técnica, promoviendo un lenguaje ubicuo entre los distintos perfiles de usuario (propietarios, arrendadores, inquilinos) y el equipo de desarrollo.
+Como principio rector, se emplea una arquitectura basada en **Domain-Driven Design (DDD)**, permitiendo modelar de forma precisa los subdominios clave del sistema: Gestión de Identidad, Propiedades y Unidades, Consumo y Telemetría, Alertas y Notificaciones, Ahorro y Recomendaciones, Analíticas y Reportes, y Suscripciones. Este enfoque facilita la alineación entre la lógica de negocio y la implementación técnica, promoviendo un lenguaje ubicuo entre los distintos perfiles de usuario (propietarios e inquilinos) y el equipo de desarrollo.
 
 El sistema se organiza mediante **Bounded Contexts**, delimitando claramente las responsabilidades de cada subdominio. Esto permite desacoplar funcionalidades críticas como la ingesta de telemetría, el cálculo de alertas y la generación de recomendaciones, favoreciendo la mantenibilidad y la evolución independiente de cada componente.
 
@@ -58,13 +58,13 @@ La combinación de Domain-Driven Design (DDD), arquitectura de microservicios y 
 
 El diagrama de contexto de HydroSmart representa la vista más general del sistema, permitiendo identificar claramente los límites que lo separan de su entorno externo. Este diagrama describe las interacciones entre los actores principales y los servicios externos que se integran con la plataforma, proporcionando una visión global de los flujos de información y los puntos de integración tecnológica.
 
-En primer lugar, se identifican los actores principales que interactúan directamente con el sistema. Los **propietarios de viviendas con áreas verdes** utilizan la plataforma para monitorear su consumo en tiempo real, optimizar el riego de sus jardines y recibir alertas ante posibles fugas. Los **arrendadores** (dueños de departamentos con servicios incluidos) emplean HydroSmart para administrar sus unidades y supervisar el consumo individual de sus inquilinos, protegiendo así su rentabilidad. Los **estudiantes y jóvenes arrendatarios** usan la plataforma para controlar su gasto diario, establecer metas de ahorro adaptadas a su presupuesto y evitar cobros inesperados. Finalmente, los **administradores del sistema** cumplen un rol de supervisión operativa y soporte de la plataforma.
+En primer lugar, se identifican los actores principales que interactúan directamente con el sistema. Los **propietarios de viviendas con áreas verdes** utilizan la plataforma para monitorear su consumo en tiempo real, optimizar el riego de sus jardines y recibir alertas ante posibles fugas. Los **estudiantes y jóvenes arrendatarios** usan la plataforma para controlar su gasto diario, establecer metas de ahorro adaptadas a su presupuesto y evitar cobros inesperados. Finalmente, los **administradores del sistema** cumplen un rol de supervisión operativa y soporte de la plataforma.
 
 Asimismo, HydroSmart interactúa con servicios externos especializados que complementan su funcionalidad principal. Se integra **Firebase Authentication**, el cual gestiona el registro e inicio de sesión de los usuarios mediante mecanismos seguros de autenticación, delegando la gestión de credenciales y reduciendo la complejidad interna del sistema. Los **sensores IoT / medidores inteligentes de caudal** instalados en el punto de suministro de agua de cada vivienda o unidad envían de forma continua sus lecturas hacia la plataforma, constituyendo la fuente primaria de datos del sistema. Para notificar al usuario ante consumos inusuales o fugas detectadas, el sistema se apoya en un **servicio de notificaciones push (Firebase Cloud Messaging)**. Por otro lado, para el modelo de monetización mediante planes de suscripción (Freemium, Premium), HydroSmart se integra con una **pasarela de pagos** (Stripe o Culqi) que procesa las transacciones de forma segura. Finalmente, se considera un **servicio de almacenamiento en la nube** para la gestión de imágenes de perfil de los usuarios.
 
 La incorporación de estos servicios externos responde a principios arquitectónicos de desacoplamiento y especialización, delegando funcionalidades no críticas a proveedores externos confiables. Esto permite reducir la complejidad interna del sistema, mejorar la seguridad (especialmente en la gestión de autenticación y pagos) y optimizar el rendimiento general de la plataforma.
 
-En conjunto, el diagrama de contexto muestra que HydroSmart actúa como el núcleo central que traduce las lecturas de consumo de agua en información accionable para sus tres segmentos de usuario, mientras delega funciones específicas como autenticación, notificaciones y pagos a servicios externos especializados.
+En conjunto, el diagrama de contexto muestra que HydroSmart actúa como el núcleo central que traduce las lecturas de consumo de agua en información accionable para sus dos segmentos de usuario, mientras delega funciones específicas como autenticación, notificaciones y pagos a servicios externos especializados.
 
 ![alt text](images/ContextoHydroSmart-key.png)
 
@@ -73,7 +73,7 @@ En conjunto, el diagrama de contexto muestra que HydroSmart actúa como el núcl
 ### 4.1.4 Approach driven ViewPoints Diagrams
 Se presenta el diagrama de secuencia que describe el flujo principal cuando un sensor reporta una lectura de consumo y el sistema detecta una posible anomalía (fuga o consumo excesivo), notificando al usuario en tiempo real. El diagrama organiza las acciones en función de los bounded contexts más relevantes del sistema: **Identity & Access Management (IAM)**, **Consumption & Telemetry**, **Alerts & Notifications** y **Analytics & Reports**.
 
-El flujo se inicia en el bounded context **IAM**, donde el usuario accede a la plataforma web o móvil y realiza el proceso de autenticación mediante correo y contraseña utilizando Firebase Authentication. Una vez autenticado, el sistema valida el rol del usuario (propietario, arrendador o inquilino) y concede acceso a las funcionalidades correspondientes a su vivienda o unidad.
+El flujo se inicia en el bounded context **IAM**, donde el usuario accede a la plataforma web o móvil y realiza el proceso de autenticación mediante correo y contraseña utilizando Firebase Authentication. Una vez autenticado, el sistema valida el rol del usuario (propietario o inquilino) y concede acceso a las funcionalidades correspondientes a su vivienda o unidad.
 
 De manera independiente y continua, el bounded context **Consumption & Telemetry** recibe las lecturas de caudal enviadas por el sensor IoT instalado en el punto de suministro. El servicio valida la lectura, la procesa de forma idempotente para evitar duplicados y la persiste, publicando un evento de dominio `ConsumptionRecorded` hacia el Message Broker.
 
@@ -93,7 +93,7 @@ Finalmente, el usuario visualiza en su dashboard tanto la alerta recibida como e
 
 ### 4.2.1 Design Purpose
  
-El propósito del diseño arquitectónico de HydroSmart, producto de la startup AquaPulse, es construir una plataforma web y móvil que permita a los usuarios residenciales monitorear en tiempo real su consumo de agua, detectar fugas de manera temprana y traducir cada litro consumido en su equivalente económico, a partir de las lecturas enviadas por sensores IoT y medidores inteligentes de terceros. La arquitectura debe garantizar que cada decisión de diseño esté justificada por el valor que aporta a los segmentos objetivo del sistema: los propietarios de viviendas con áreas verdes, los arrendadores de departamentos con servicios incluidos y los estudiantes y jóvenes arrendatarios con presupuesto limitado.
+El propósito del diseño arquitectónico de HydroSmart, producto de la startup AquaPulse, es construir una plataforma web y móvil que permita a los usuarios residenciales monitorear en tiempo real su consumo de agua, detectar fugas de manera temprana y traducir cada litro consumido en su equivalente económico, a partir de las lecturas enviadas por sensores IoT y medidores inteligentes de terceros. La arquitectura debe garantizar que cada decisión de diseño esté justificada por el valor que aporta a los segmentos objetivo del sistema: los propietarios de viviendas con áreas verdes y los estudiantes y jóvenes arrendatarios con presupuesto limitado.
  
 **Coherencia con el Dominio del Negocio**
  
@@ -119,15 +119,15 @@ El propósito del diseño arquitectónico de HydroSmart, producto de la startup 
  
 *   Diseñar la aplicación móvil como el canal principal de interacción, dado que los segmentos consultan su consumo y reciben alertas desde el celular.
 *   Presentar los datos de consumo con etiquetas, colores e indicadores visuales comprensibles para usuarios sin conocimientos técnicos, tal como lo solicitaron los entrevistados.
-*   Ofrecer al arrendador una vista web de gestión por unidades que le permita supervisar varias propiedades desde un solo panel.
+
 **Seguridad, Privacidad y Control de Acceso por Roles**
  
-*   Delegar la autenticación a Firebase Authentication y aplicar control de acceso basado en roles (Propietario, Arrendador, Inquilino y Administrador), diferenciando con claridad las capacidades de cada perfil en cada operación del sistema.
-*   Restringir el acceso a los datos de consumo de cada unidad exclusivamente a su propietario o arrendador asociado, al inquilino asignado y al administrador autorizado, dado que los patrones de consumo revelan hábitos y horarios del hogar.
+*   Delegar la autenticación a Firebase Authentication y aplicar control de acceso basado en roles (Propietario, Inquilino y Administrador), diferenciando con claridad las capacidades de cada perfil en cada operación del sistema.
+*   Restringir el acceso a los datos de consumo de cada unidad exclusivamente a su propietario, al inquilino asignado y al administrador autorizado, dado que los patrones de consumo revelan hábitos y horarios del hogar.
 *   Cumplir con la Ley N.° 29733 de Protección de Datos Personales, informando al usuario cómo se almacenan y protegen sus datos y permitiéndole gestionarlos.
 La arquitectura debe actuar como un puente coherente entre las necesidades reales de los hogares y las capacidades tecnológicas de la plataforma, asegurando que cada componente del sistema aporte valor directo al objetivo de negocio: transformar el consumo pasivo de agua en una gestión preventiva, inteligente y económica, que permita actuar antes de que el gasto se convierta en un problema.
 
-El propósito principal del diseño de HydroSmart es construir una plataforma escalable, segura y de baja latencia capaz de transformar las lecturas continuas de sensores IoT en información accionable para distintos perfiles de usuario (propietarios de viviendas, arrendadores e inquilinos), permitiéndoles detectar fugas, optimizar el consumo de agua y proyectar su gasto de forma anticipada.
+El propósito principal del diseño de HydroSmart es construir una plataforma escalable, segura y de baja latencia capaz de transformar las lecturas continuas de sensores IoT en información accionable para distintos perfiles de usuario (propietarios de viviendas e inquilinos), permitiéndoles detectar fugas, optimizar el consumo de agua y proyectar su gasto de forma anticipada.
 
 Desde la perspectiva de negocio, el sistema busca proveer una experiencia diferencial frente a soluciones tradicionales de medición: en lugar de entregar únicamente lecturas de volumen, HydroSmart interpreta esos datos mediante algoritmos de detección de anomalías y proyecciones financieras, agregando valor directo al usuario final. El modelo de monetización basado en suscripciones escalonadas (Freemium, Pro, Smart) refuerza la necesidad de garantizar alta disponibilidad y confiabilidad, ya que una interrupción en el servicio afecta directamente la percepción de valor del producto.
 
@@ -149,7 +149,7 @@ Las siguientes User Stories representan la funcionalidad primaria que define la 
  
 Como usuario nuevo, quiero registrarme indicando mi tipo de perfil para acceder a las funcionalidades adaptadas a mis necesidades de consumo de agua.
  
-**Impacto Arquitectónico:** Establece el microservicio IAM con integración a Firebase Authentication, delegando completamente la gestión de credenciales al proveedor externo; la entidad `users` almacena únicamente el `firebase_uid` como referencia, sin persistir contraseñas localmente. Define la relación uno a uno entre `users` y `profiles`, y la asignación del tipo de perfil mediante la tabla intermedia `user_roles` (PROPIETARIO, ARRENDADOR, INQUILINO, ADMINISTRADOR) en un modelo muchos a muchos. Al completarse el registro, IAM publica el evento de dominio `UserRegistered` para que los demás bounded contexts inicialicen la información del usuario sin acoplarse a IAM.
+**Impacto Arquitectónico:** Establece el microservicio IAM con integración a Firebase Authentication, delegando completamente la gestión de credenciales al proveedor externo; la entidad `users` almacena únicamente el `firebase_uid` como referencia, sin persistir contraseñas localmente. Define la relación uno a uno entre `users` y `profiles`, y la asignación del tipo de perfil mediante la tabla intermedia `user_roles` (PROPIETARIO, INQUILINO, ADMINISTRADOR) en un modelo muchos a muchos. Al completarse el registro, IAM publica el evento de dominio `UserRegistered` para que los demás bounded contexts inicialicen la información del usuario sin acoplarse a IAM.
  
 **US02: Inicio de sesión**
  
@@ -185,20 +185,7 @@ Como propietario, quiero recibir una alerta cuando el sistema detecte una posibl
  
 **Impacto Arquitectónico:** Requiere el patrón Strategy en el microservicio de Alertas y Notificaciones para encapsular los distintos algoritmos de detección (umbral fijo, flujo continuo fuera del horario habitual, desviación respecto al promedio histórico) bajo una interfaz común, facilitando la incorporación de nuevas reglas sin alterar la lógica existente. Al confirmarse la anomalía se publica el evento `LeakDetected`, y la ubicación aproximada de la fuga se obtiene a partir de la zona del medidor que originó la lectura.
  
-#### Funcionalidad Core - Gestión de Propiedades e Inquilinos
- 
-**US11: Registro de unidades**
- 
-Como arrendador, quiero registrar las unidades de mi inmueble en la plataforma para gestionar el consumo de cada una de forma independiente.
- 
-**Impacto Arquitectónico:** Define el microservicio de Propiedades y Unidades con la entidad `Property` vinculada al arrendador mediante `owner_id` y una relación uno a muchos con `Unit`. La asignación de inquilinos se registra en la tabla `unit_tenants` y la de medidores en la relación entre `Unit` y `Meter`. Para verificar la existencia y el rol del arrendador sin acoplarse a la implementación interna de IAM, se utiliza el patrón Facade (Anti-Corruption Layer) entre ambos contextos.
- 
-**US12: Monitoreo por unidad**
- 
-Como arrendador, quiero monitorear el consumo de agua de cada unidad de mi inmueble para identificar inquilinos con consumo excesivo.
- 
-**Impacto Arquitectónico:** Establece la comunicación síncrona entre Propiedades y Unidades y Consumo y Telemetría: Propiedades resuelve qué medidores pertenecen a cada unidad del arrendador y Consumo y Telemetría devuelve el consumo individual en litros y soles. Exige que cada consulta valide que la unidad pertenezca al arrendador autenticado, evitando que un usuario acceda al consumo de unidades ajenas.
- 
+
 #### Funcionalidad Core - Ahorro y Metas
  
 **US14: Establecer meta de ahorro**
@@ -215,11 +202,6 @@ Como usuario, quiero revisar mi historial de consumo para identificar patrones y
  
 **Impacto Arquitectónico:** Establece la aplicación del patrón CQRS en el microservicio de Analíticas y Reportes: las consultas de historial (por ejemplo, `GetConsumptionHistoryQuery`) se resuelven sobre agregados diarios, semanales y mensuales, separadas de la escritura continua de lecturas en Consumo y Telemetría. Esto permite responder rápidamente a los gráficos del historial sin afectar el procesamiento en tiempo real.
  
-**US13: Reporte de consumo por unidad**
- 
-Como arrendador, quiero generar reportes de consumo por unidad para tener evidencia documentada ante disputas con inquilinos.
- 
-**Impacto Arquitectónico:** Define que el microservicio de Analíticas y Reportes genere el documento descargable de forma asíncrona a partir de los agregados de consumo de la unidad y el periodo seleccionados, lo almacene en el servicio de almacenamiento en la nube (AWS S3) y registre su referencia en la entidad `reports`. Las lecturas utilizadas como evidencia no pueden modificarse después de registradas, lo que garantiza la validez del reporte ante una disputa.
 
 Las siguientes User Stories representan la funcionalidad primaria que define la estructura arquitectónica central del sistema. Se agrupan por área funcional y se detalla el impacto arquitectónico que cada una genera.
 
@@ -231,11 +213,6 @@ Como usuario, quiero registrarme e iniciar sesión de forma segura con mi correo
 
 Impacto Arquitectónico: Establece el microservicio de Gestión de Identidad (IAM) con integración a Firebase Authentication, delegando completamente la gestión de credenciales al proveedor externo. La entidad User almacena únicamente el firebase_uid como referencia, sin persistir contraseñas localmente. Define la relación uno a uno entre User y Profile, y la asignación de roles mediante la enumeración UserType (OWNER, TENANT, ADMIN). Esta separación establece la validación de acceso en el API Gateway, donde cada petición es verificada contra el token JWT y el rol del usuario antes de ser enrutada al microservicio correspondiente.
 
-US-05: Administración de unidades (arrendador)
-
-Como arrendador, quiero registrar mis unidades habitacionales y asociar a cada una sus inquilinos y sensores, para supervisar el consumo individual y evitar cobros incorrectos.
-
-Impacto Arquitectónico: Define la separación entre el microservicio IAM (identidad) y el microservicio de Propiedades y Unidades (gestión de inmuebles). El IAM crea el usuario con firebase_uid y asigna el rol de arrendador, mientras que el microservicio de Propiedades registra las unidades habitacionales vinculadas al ownerId. Esta separación establece la comunicación entre bounded contexts mediante el patrón Facade/ACL, validando que solo el propietario registrado pueda asociar inquilinos y sensores a sus unidades. La relación propietario–unidad–inquilino–sensor constituye el modelo de dominio central para la supervisión del consumo individual.
 
 **Funcionalidad Core – Monitoreo y Telemetría en Tiempo Real**
 
@@ -247,7 +224,7 @@ Impacto Arquitectónico: Establece el pipeline de ingesta IoT como el componente
 
 US-02: Detección y alerta de fugas
 
-Como propietario o arrendador, quiero recibir una notificación push inmediata cuando el sistema detecte un patrón de consumo continuo o anómalo que indique una posible fuga.
+Como propietario, quiero recibir una notificación push inmediata cuando el sistema detecte un patrón de consumo continuo o anómalo que indique una posible fuga.
 
 Impacto Arquitectónico: Define el bounded context de Alertas y Notificaciones como consumidor del evento `ConsumptionRecorded`. El módulo AnomalyDetector evalúa cada lectura contra los umbrales configurados (sensitivityThreshold) y contra patrones de consumo continuo fuera de lo habitual. Si detecta una anomalía, genera el evento `LeakDetected` y solicita al servicio externo de notificaciones push (Firebase Cloud Messaging) que envíe una alerta inmediata al dispositivo del usuario, indicando la severidad (INFO, WARNING, CRITICAL) y el punto donde ocurre. La latencia entre la recepción de la lectura anómala y la entrega de la notificación push no debe superar los 15 segundos en el percentil 95.
 
@@ -261,9 +238,9 @@ Impacto Arquitectónico: Requiere el bounded context de Analíticas y Reportes c
 
 US-07: Historial de consumo y reportes exportables
 
-Como propietario o arrendador, quiero consultar el historial de consumo de mis unidades por rango de fechas y exportarlo en formato PDF o CSV para presentarlo ante la junta de propietarios o ante mi inquilino.
+Como propietario, quiero consultar el historial de consumo de mis unidades por rango de fechas y exportarlo en formato PDF o CSV para presentarlo ante la junta de propietarios o ante mi inquilino.
 
-Impacto Arquitectónico: Establece que el microservicio de Analíticas y Reportes debe exponer endpoints de consulta y exportación que lean los datos consolidados de las series temporales de consumo y los transformen en los formatos requeridos (PDF, CSV). El acceso a estos reportes queda restringido exclusivamente a usuarios con el rol verificado de propietario o arrendador de la unidad consultada, aplicando validación de rol en cada petición.
+Impacto Arquitectónico: Establece que el microservicio de Analíticas y Reportes debe exponer endpoints de consulta y exportación que lean los datos consolidados de las series temporales de consumo y los transformen en los formatos requeridos (PDF, CSV). El acceso a estos reportes queda restringido exclusivamente a usuarios con el rol verificado de propietario de la unidad consultada, aplicando validación de rol en cada petición.
 
 **Funcionalidad Core – Ahorro y Recomendaciones**
 
@@ -344,7 +321,7 @@ En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la
  
 | Elemento | Descripción |
 |---|---|
-| **Fuente del estímulo** | Usuario (propietario, arrendador o inquilino). |
+| **Fuente del estímulo** | Usuario (propietario o inquilino). |
 | **Estímulo** | El usuario abre la aplicación móvil para revisar su consumo del día en litros y soles. |
 | **Entorno** | Tiempo de ejecución, bajo condiciones normales de operación. |
 | **Artefacto** | Aplicación móvil y microservicios de Consumo y Telemetría y Analíticas y Reportes. |
@@ -377,7 +354,7 @@ En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la
  
 | Elemento | Descripción |
 |---|---|
-| **Fuente del estímulo** | Usuario autenticado (arrendador o inquilino). |
+| **Fuente del estímulo** | Usuario autenticado (propietario o inquilino). |
 | **Estímulo** | Un usuario intenta consultar el consumo o los reportes de una unidad que no le pertenece o a la que no está asignado, modificando el identificador en la petición. |
 | **Entorno** | Tiempo de ejecución, operación normal. |
 | **Artefacto** | Microservicios de Propiedades y Unidades, Consumo y Telemetría, y Analíticas y Reportes. |
@@ -439,16 +416,6 @@ En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la
 | **Respuesta** | El sistema aplica el patrón Adapter y la táctica de Definiciones de interfaces compartidas: cada fabricante cuenta con un adaptador que traduce su formato al contrato canónico de lectura (`meterId`, `timestamp`, litros acumulados), sin modificar la lógica de dominio. |
 | **Medida de la respuesta** | La integración del nuevo fabricante se completa en un máximo de 3 días de desarrollo, modificando únicamente el nuevo adaptador. |
  
-**Escenario 15: Rendimiento - Generación de reporte por unidad**
- 
-| Elemento | Descripción |
-|---|---|
-| **Fuente del estímulo** | Arrendador. |
-| **Estímulo** | El arrendador solicita el reporte descargable del consumo de una unidad para un periodo de tres meses. |
-| **Entorno** | Tiempo de ejecución, operación normal. |
-| **Artefacto** | Microservicio de Analíticas y Reportes y servicio externo AWS S3. |
-| **Respuesta** | El sistema procesa la solicitud de forma asíncrona: registra el reporte en estado EN_PROCESO, lo genera a partir de los agregados de consumo, lo almacena en AWS S3 y notifica al arrendador cuando está disponible, sin bloquear la interfaz. |
-| **Medida de la respuesta** | El reporte queda disponible para descarga en menos de 30 segundos y la solicitud inicial se confirma en menos de 1 segundo. |
 
 En esta sección se definen los Escenarios de Atributos de Calidad (QAS) para la arquitectura de la plataforma HydroSmart. Estos escenarios constituyen una herramienta fundamental de diseño y validación, ya que permiten operativizar y hacer completamente medibles los requerimientos no funcionales (RNF) del sistema, tales como el rendimiento, la seguridad, la disponibilidad y la escalabilidad. Al desglosar cada atributo en términos de fuente, estímulo, artefacto, entorno, respuesta y medida, se garantiza que cada decisión arquitectónica pueda ser verificada objetivamente.
 
@@ -483,7 +450,7 @@ Escenario 3: Seguridad – Acceso no autorizado a datos de consumo
 | **Entorno** | Cualquier entorno (producción o staging), bajo condiciones normales de operación. |
 | **Artefacto** | API Gateway + microservicio de Gestión de Identidad (IAM). |
 | **Respuesta** | El sistema valida el token JWT y el rol del usuario; si la validación falla, rechaza la solicitud con un error `403 Forbidden` sin exponer información sensible ni datos de la unidad consultada. |
-| **Medida de la respuesta** | El **100 %** de los endpoints protegidos valida token y rol antes de procesar la petición. Ningún dato de consumo es accesible sin autorización explícita del propietario o arrendador correspondiente. |
+| **Medida de la respuesta** | El **100 %** de los endpoints protegidos valida token y rol antes de procesar la petición. Ningún dato de consumo es accesible sin autorización explícita del propietario correspondiente. |
 
 Escenario 4: Escalabilidad – Crecimiento de sensores activos
 
@@ -522,7 +489,7 @@ Escenario 7: Rendimiento – Carga del dashboard de consumo
 
 | Elemento | Descripción |
 | :--- | :--- |
-| **Fuente del estímulo** | Usuario propietario o arrendador accediendo al dashboard principal de la aplicación. |
+| **Fuente del estímulo** | Usuario propietario accediendo al dashboard principal de la aplicación. |
 | **Estímulo** | El usuario solicita la visualización del resumen de consumo actual, la proyección de gasto mensual y el estado de sus metas de ahorro. |
 | **Entorno** | Operación normal en producción, con múltiples usuarios consultando el dashboard simultáneamente. |
 | **Artefacto** | Bounded context de Analíticas y Reportes + API Gateway. |
@@ -546,7 +513,7 @@ Identificamos los factores técnicos, legales o de diseño que limitan y condici
  
 | ID | Descripción |
 |---|---|
-| R01 | La autenticación debe delegarse a Firebase Authentication, y el sistema debe validar los permisos mediante tokens JWT y roles de usuario (Propietario, Arrendador, Inquilino y Administrador) para bloquear accesos no autorizados a funcionalidades y datos de consumo. |
+| R01 | La autenticación debe delegarse a Firebase Authentication, y el sistema debe validar los permisos mediante tokens JWT y roles de usuario (Propietario, Inquilino y Administrador) para bloquear accesos no autorizados a funcionalidades y datos de consumo. |
 | R02 | AquaPulse no fabrica ni comercializa hardware: la captura de datos depende de sensores IoT y medidores inteligentes de terceros compatibles que publiquen sus lecturas mediante el protocolo MQTT. |
 | R03 | La plataforma y los servicios web deben seguir el enfoque de diseño DDD (Domain-Driven Design), con una arquitectura de microservicios en la que cada bounded context gestiona su propia base de datos. |
 | R04 | El backend debe exponer una API RESTful en formato JSON, documentada con OpenAPI 3.1 / Swagger, a través de un único API Gateway para su consumo desde la aplicación web y la aplicación móvil. |
@@ -558,7 +525,7 @@ Identificamos los factores técnicos, legales o de diseño que limitan y condici
 | R10 | El intercambio de datos entre clientes y servidor debe realizarse mediante HTTPS, y la conexión de los sensores mediante MQTT sobre TLS. |
 | R11 | El tratamiento de los datos personales y de consumo debe cumplir con la Ley N.° 29733, Ley de Protección de Datos Personales, y su reglamento. |
 | R12 | Los montos deben expresarse en soles (PEN) y calcularse según la estructura tarifaria de la empresa prestadora del servicio (SEDAPAL en Lima) aprobada por SUNASS. |
-| R13 | La plataforma contará con tres planes de suscripción: Freemium, Premium (S/ 15 a S/ 25 mensuales) y Arrendador (S/ 40 a S/ 60 mensuales), cuyos pagos se procesan mediante una pasarela externa (Stripe o Culqi). |
+| R13 | La plataforma contará con dos planes de suscripción: Freemium y Premium (S/ 15 a S/ 25 mensuales), cuyos pagos se procesan mediante una pasarela externa (Stripe o Culqi). |
 | R14 | Solo puede existir una meta de ahorro activa por usuario y periodo mensual, y un medidor solo puede estar vinculado a una unidad a la vez. |
 | R15 | Las notificaciones push deben enviarse mediante Firebase Cloud Messaging y los correos electrónicos mediante SendGrid. |
 | R16 | Las imágenes de perfil y los reportes descargables deben almacenarse en AWS S3, y la solución debe desplegarse en la nube de AWS. |
@@ -595,9 +562,9 @@ Las alertas deben llegar a tiempo sin saturar al usuario. Se utilizan reintentos
  
 La protección contra accesos no autorizados se resuelve centralizando la validación de los **JWT de Firebase Authentication** en el **API Gateway**, que actúa como filtro de seguridad antes de que la petición llegue a los microservicios internos.
  
-**8. Privacidad de los Datos de Consumo entre Arrendador e Inquilino**
+**8. Privacidad de los Datos de Consumo entre Usuarios**
  
-Los patrones de consumo revelan hábitos y horarios de ocupación del hogar. Arquitectónicamente, se debe asegurar que el arrendador solo acceda al consumo de sus propias unidades, que el inquilino solo vea la unidad que ocupa y que el tratamiento de los datos cumpla la **Ley N.° 29733**, con consentimiento informado y opciones de gestión de datos (US17).
+Los patrones de consumo revelan hábitos y horarios de ocupación del hogar. Arquitectónicamente, se debe asegurar que cada usuario solo acceda al consumo de sus propias unidades y que el tratamiento de los datos cumpla la **Ley N.° 29733**, con consentimiento informado y opciones de gestión de datos (US17).
  
 **9. Almacenamiento y Consulta Eficiente de Series de Tiempo**
  
@@ -609,7 +576,7 @@ El usuario debe seguir viendo su consumo y recibiendo alertas aunque servicios n
  
 **11. Gestión de Planes de Suscripción (Monetización)**
  
-Controlar que cada usuario acceda solo a las funcionalidades de su plan: por ejemplo, la gestión de múltiples unidades es exclusiva del plan Arrendador. Esta preocupación es atendida por el microservicio de **Suscripciones**, que procesa los pagos mediante la pasarela externa (**Stripe o Culqi**) y sincroniza el estado del plan con las capacidades habilitadas en **Propiedades y Unidades** y **Ahorro y Recomendaciones**.
+Controlar que cada usuario acceda solo a las funcionalidades de su plan: por ejemplo, las alertas avanzadas y los reportes exportables son exclusivos del plan Premium. Esta preocupación es atendida por el microservicio de **Suscripciones**, que procesa los pagos mediante la pasarela externa (**Stripe o Culqi**) y sincroniza el estado del plan con las capacidades habilitadas en **Ahorro y Recomendaciones**.
  
 **12. Trazabilidad y Evidencia del Consumo**
  
@@ -730,7 +697,7 @@ El sistema se estructura en los siguientes bloques y componentes principales:
 - **Lógica de Aplicación Especializada:** La lógica de identidad se separa en servicios especializados para mantener responsabilidades claras.
   - **Authentication Service:** Orquesta el proceso de autenticación y sesión del usuario, delegando la validación de identidad al adaptador de Firebase.
   - **Profile Service:** Administra los datos de perfil y preferencias del usuario.
-  - **Role Service:** Valida los permisos según el rol registrado: propietario, arrendador, inquilino o administrador.
+  - **Role Service:** Valida los permisos según el rol registrado: propietario, inquilino o administrador.
 - **Persistencia y Adaptadores de Infraestructura:** El núcleo de identidad se mantiene desacoplado de proveedores externos y almacenamiento.
   - **Firebase Auth Adapter:** Encapsula la comunicación con Firebase Authentication para validar credenciales y tokens JWT.
   - **User Repository:** Persiste usuarios, perfiles y roles en MySQL, evitando que la lógica de aplicación dependa directamente de consultas SQL.
