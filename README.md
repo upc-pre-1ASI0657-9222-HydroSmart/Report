@@ -89,7 +89,7 @@ En esta sección se presentan los diagramas de base de datos que soportan la per
 
 **Estimación de volumetría de telemetría**
 
-Antes de justificar la elección de MongoDB para las lecturas, se dimensiona la carga esperada tomando como base la meta de crecimiento de 800 usuarios activos definida en el Escenario 5 (sección 4.2.3) y un promedio estimado de 1.5 medidores por usuario (considerando que un propietario puede tener medidores por zona — GENERAL y RIEGO — y que un arrendador administra varias unidades, cada una con al menos un medidor):
+Antes de justificar la elección de MongoDB para las lecturas, se dimensiona la carga esperada tomando como base la meta de crecimiento de 800 usuarios activos definida en el Escenario 5 (sección 4.2.3) y un promedio estimado de 1.5 medidores por usuario (considerando que un propietario puede tener medidores por zona — GENERAL y RIEGO — o administrar un inmueble con varias unidades, cada una con al menos un medidor):
 
 | Parámetro | Valor estimado |
 |---|---|
@@ -110,7 +110,7 @@ Este volumen (2 400 lecturas/min en operación estable, con margen hasta las 20 
 
 **Vinculación Medidor – Propiedad – Unidad – Usuario**
 
-Uno de los aspectos más críticos del modelo de datos es garantizar la trazabilidad completa entre el usuario, la propiedad que posee o arrienda, la unidad habitacional y el medidor físico que reporta el consumo, ya que de esta cadena depende tanto el control de acceso (R01) como la facturación y las alertas por unidad. Esta cadena atraviesa dos bounded contexts: **Gestión de Identidad (IAM)** y **Propiedades y Unidades**, y su estado se replica de forma asíncrona hacia **Consumo y Telemetría** para que este último no dependa de llamadas síncronas en el camino crítico de ingesta.
+Uno de los aspectos más críticos del modelo de datos es garantizar la trazabilidad completa entre el usuario propietario, la propiedad que posee, la unidad habitacional (y su inquilino asignado, de existir) y el medidor físico que reporta el consumo, ya que de esta cadena depende tanto el control de acceso (R01) como la facturación y las alertas por unidad. Esta cadena atraviesa dos bounded contexts: **Gestión de Identidad (IAM)** y **Propiedades y Unidades**, y su estado se replica de forma asíncrona hacia **Consumo y Telemetría** para que este último no dependa de llamadas síncronas en el camino crítico de ingesta.
 
 ```mermaid
 erDiagram
@@ -161,7 +161,7 @@ erDiagram
     }
 ```
 
-El constraint R14 (un medidor solo puede estar vinculado a una unidad a la vez) se implementa mediante la tabla `unit_meter_links`, exigiendo `unlinked_at IS NULL` como condición de unicidad activa por `meter_id`. Este vínculo es propiedad del bounded context **Propiedades y Unidades** (allí se registra y se rompe la asociación cuando el arrendador reemplaza un medidor o desvincula una unidad), pero **Consumo y Telemetría** necesita conocerlo en cada lectura sin incurrir en una llamada síncrona. Por ello, cuando se registra o modifica un vínculo se publica el evento de dominio `MeterLinkedToUnit` / `MeterUnlinked`, que Consumo y Telemetría consume para mantener una réplica local de solo lectura (`meter_references`) con `meter_id`, `unit_id_ref`, `property_id_ref` y `owner_user_id_ref`, siguiendo el mismo patrón de réplicas asíncronas vía eventos aplicado entre los demás bounded contexts del sistema.
+El constraint R14 (un medidor solo puede estar vinculado a una unidad a la vez) se implementa mediante la tabla `unit_meter_links`, exigiendo `unlinked_at IS NULL` como condición de unicidad activa por `meter_id`. Este vínculo es propiedad del bounded context **Propiedades y Unidades** (allí se registra y se rompe la asociación cuando el propietario reemplaza un medidor o desvincula una unidad), pero **Consumo y Telemetría** necesita conocerlo en cada lectura sin incurrir en una llamada síncrona. Por ello, cuando se registra o modifica un vínculo se publica el evento de dominio `MeterLinkedToUnit` / `MeterUnlinked`, que Consumo y Telemetría consume para mantener una réplica local de solo lectura (`meter_references`) con `meter_id`, `unit_id_ref`, `property_id_ref` y `owner_user_id_ref`, siguiendo el mismo patrón de réplicas asíncronas vía eventos aplicado entre los demás bounded contexts del sistema.
 
 **Microservicio: Gestión de Identidad (IAM)**
 
@@ -188,7 +188,7 @@ erDiagram
     }
     ROLES {
         bigint id PK
-        string code UK "PROPIETARIO | ARRENDADOR | INQUILINO | ADMINISTRADOR"
+        string code UK "PROPIETARIO | INQUILINO | ADMINISTRADOR"
     }
     USER_ROLES {
         bigint user_id PK,FK
@@ -197,7 +197,7 @@ erDiagram
     }
 ```
 
-La base de datos de IAM se implementa en MySQL y no persiste contraseñas: `users.firebase_uid` es la única referencia a Firebase Authentication (constraint R01), garantizando que la validación de credenciales se delegue completamente al proveedor externo. La relación `users`–`profiles` es uno a uno y separa el dato de autenticación del dato biográfico. La asignación de roles es muchos a muchos mediante `user_roles`, lo que permite que un mismo usuario acumule más de un rol (por ejemplo, ser propietario de una vivienda y a la vez arrendador de un departamento), sin necesidad de duplicar su cuenta.
+La base de datos de IAM se implementa en MySQL y no persiste contraseñas: `users.firebase_uid` es la única referencia a Firebase Authentication (constraint R01), garantizando que la validación de credenciales se delegue completamente al proveedor externo. La relación `users`–`profiles` es uno a uno y separa el dato de autenticación del dato biográfico. La asignación de roles es muchos a muchos mediante `user_roles`, lo que permite que un mismo usuario acumule más de un rol (por ejemplo, ser propietario de una vivienda e inquilino en otra), sin necesidad de duplicar su cuenta.
 
 **Microservicio: Propiedades y Unidades**
 
@@ -376,7 +376,7 @@ erDiagram
 
     PLANS {
         bigint id PK
-        string code UK "FREEMIUM | PREMIUM | ARRENDADOR"
+        string code UK "FREEMIUM | PREMIUM"
         decimal price_min_pen
         decimal price_max_pen
         string billing_period
@@ -392,7 +392,7 @@ erDiagram
     }
 ```
 
-`plans` refleja los tres planes y rangos de precio definidos en el constraint R13 (Freemium, Premium y Arrendador), y `subscriptions.payment_provider_ref` conserva únicamente la referencia de la transacción de Stripe/Culqi, sin persistir datos de tarjeta en la base de datos de HydroSmart (Escenario 8, sección 4.2.3).
+`plans` refleja los planes y rangos de precio definidos en el constraint R13 (Freemium y Premium), y `subscriptions.payment_provider_ref` conserva únicamente la referencia de la transacción de Stripe/Culqi, sin persistir datos de tarjeta en la base de datos de HydroSmart (Escenario 8, sección 4.2.3).
 
 ### 4.1.6 Design Patterns
 
@@ -452,7 +452,7 @@ Siguiendo el catálogo de tácticas arquitectónicas del método ADD, se selecci
 
 **Privacidad**
 
-- **Limitar el acceso por consentimiento y finalidad:** los datos de consumo de una unidad, que revelan hábitos y horarios del hogar, se exponen exclusivamente al propietario o arrendador asociado, al inquilino asignado y al administrador autorizado, en cumplimiento de la Ley N.° 29733 (R11, Architectural Concern 8, sección 4.2.5).
+- **Limitar el acceso por consentimiento y finalidad:** los datos de consumo de una unidad, que revelan hábitos y horarios del hogar, se exponen exclusivamente al propietario asociado, al inquilino asignado y al administrador autorizado, en cumplimiento de la Ley N.° 29733 (R11, Architectural Concern 8, sección 4.2.5).
 - **Anonimización de datos en analíticas agregadas:** los agregados publicados en `daily_consumption` (4.1.5) no exponen el detalle de lecturas individuales fuera del contexto de la unidad correspondiente, limitando la superficie de exposición de patrones de comportamiento del hogar.
 
 **Recuperabilidad / Resiliencia**
