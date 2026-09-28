@@ -34,14 +34,14 @@ El objetivo de este análisis es conocer a los competidores del mercado de gesti
 	</tr>
 	<tr>
 		<td><b>Overview</b></td>
-		<td>Startup peruana en etapa inicial que ofrece una plataforma digital para monitorear el consumo de agua en hogares. No necesita hardware físico y está dirigida a propietarios, arrendadores y estudiantes de Latinoamérica.</td>
+		<td>Startup peruana en etapa inicial que ofrece una plataforma digital para monitorear el consumo de agua en hogares, integrándose con medidores inteligentes de terceros y un Gateway IoT propio. Está dirigida a propietarios, arrendadores y estudiantes de Latinoamérica.</td>
 		<td>Startup francesa que fabrica duchas inteligentes con luces LED que indican el consumo en tiempo real. Incluye una aplicación con historial, seguimiento del ahorro y logros.</td>
 		<td>Plataforma estadounidense móvil y web que interpreta datos de contadores inteligentes para monitorear y reducir el consumo de agua.</td>
 		<td>Plataforma web peruana de SUNASS que simula tarifas de agua y alcantarillado, mostrando información sobre fugas, costos y consumo promedio.</td>
 	</tr>
 	<tr>
 		<td><b>Ventaja competitiva</b></td>
-		<td>No requiere hardware y ofrece un modelo freemium adaptado al contexto latinoamericano. Incluye metas de ahorro según el presupuesto y un módulo para arrendadores.</td>
+		<td>Ofrece una solución digital integrada con medidores inteligentes asequibles, un modelo freemium adaptado al contexto latinoamericano y un módulo para arrendadores.</td>
 		<td>Ofrece retroalimentación visual e intuitiva en el momento del consumo, sin necesidad de abrir una aplicación.</td>
 		<td>Se integra con proveedores de agua para ofrecer datos reales, historial, alertas, presupuestos y comunicación en un solo lugar.</td>
 		<td>Cuenta con accesibilidad y respaldo institucional, además de información local sobre prestadores, tarifas y consumo promedio.</td>
@@ -113,7 +113,7 @@ El objetivo de este análisis es conocer a los competidores del mercado de gesti
 
 ### 2.1.2. Estrategias y tácticas frente a competidores
 
-HydroSmart cuenta con una ventaja clara frente a sus competidores más cercanos: es una solución completamente digital, sin hardware, diseñada específicamente para el contexto latinoamericano. Frente a Hydrao, que requiere invertir más de 70 euros en un dispositivo físico, HydroSmart elimina esa barrera con su modelo freemium y facilita el acceso a los segmentos B y C del mercado peruano.
+HydroSmart cuenta con una ventaja clara frente a sus competidores más cercanos: es una solución digital que integra medidores inteligentes de bajo costo con un modelo freemium, diseñada específicamente para el contexto latinoamericano. Frente a Hydrao, que requiere invertir más de 70 euros en un dispositivo físico exclusivo, HydroSmart permite que el usuario adquiera medidores compatibles asequibles en el mercado y los integre con su Gateway IoT, facilitando el acceso a los segmentos B y C del mercado peruano.
 
 Frente a Dropcountr, la estrategia consiste en desarrollar alianzas tempranas con Sedapal y otros proveedores de agua del Perú. Una integración con datos de consumo locales permitiría replicar una de las principales fortalezas de Dropcountr, pero adaptada a las necesidades y tarifas del contexto peruano.
 
