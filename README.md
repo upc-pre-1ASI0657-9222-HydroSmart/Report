@@ -706,4 +706,95 @@ Los endpoints implementados reflejan esta organización. Existen operaciones esp
 En conjunto, esta distribución permite que HydroSmart mantenga una estructura organizada entre presentación, procesamiento y persistencia, mientras que los bounded contexts delimitan las responsabilidades del dominio. Además, la API REST funciona como punto de comunicación entre la aplicación y los servicios del backend, facilitando la integración de nuevas funcionalidades conforme evolucione la plataforma.
 #### 4.3.1.6 Sketch Views (C4 & UML) and Record Design Decisions
 
+En esta sección se presentan las vistas arquitectónicas que permiten visualizar la organización actual de HydroSmart durante la primera iteración del proceso ADD. Las vistas se elaboraron considerando los elementos instanciados previamente: Web App, Mobile App, API Gateway, servicios backend por bounded context, bases de datos y sistemas externos de autenticación, notificaciones, pagos, almacenamiento y sensores IoT.
+
+**Diagrama de Contenedores**
+
+El diagrama de contenedores muestra la estructura general de la plataforma HydroSmart y la forma en que los usuarios interactúan con sus principales aplicaciones cliente. La Web App y la Mobile App consumen los servicios del sistema a través del API Gateway, el cual centraliza la validación del token JWT, enruta las peticiones REST y protege los endpoints expuestos por los contenedores internos.
+
+Dentro del límite de HydroSmart se ubican los contenedores responsables de las funcionalidades principales: User Management, Devices Management, Consumption Monitoring, Anomaly Detection, Analytics / Reporting, Saving Goals, Notifications y Subscription Management. Esta separación permite mantener responsabilidades claras y facilita la evolución independiente de cada módulo funcional.
+
+![Diagrama de Contenedores de HydroSmart](images/hydrosmart-c4-containers-visualparadigm.png)
+
+**Diagrama de Componentes de User Management**
+
+El contenedor User Management concentra las responsabilidades de registro, inicio de sesión, gestión de perfiles y validación de roles. Su diseño separa los controladores REST de la lógica de autenticación, perfil y roles, además de utilizar un adaptador para comunicarse con Firebase Authentication.
+
+![Diagrama de Componentes de User Management](images/hydrosmart-components-user-management.png)
+
+**Diagrama de Componentes de Consumption Monitoring**
+
+El contenedor Consumption Monitoring representa el flujo principal de recepción y consulta de lecturas de consumo. Las lecturas provenientes del gateway MQTT son recibidas por un worker de ingesta, normalizadas por el servicio de consumo y persistidas en MongoDB como series de tiempo. Además, el servicio consulta la información de dispositivos vinculados y solicita la evaluación de anomalías cuando corresponde.
+
+![Diagrama de Componentes de Consumption Monitoring](images/hydrosmart-components-consumption-monitoring.png)
+
+**Diagrama de Componentes de Anomaly Detection**
+
+El contenedor Anomaly Detection evalúa umbrales, patrones históricos y reglas configurables para identificar consumos inusuales o posibles fugas. Cuando se detecta una anomalía, el servicio registra el resultado y solicita al contenedor Notifications el envío de una alerta al usuario.
+
+![Diagrama de Componentes de Anomaly Detection](images/hydrosmart-components-anomaly-detection.png)
+
+**Diagrama de Componentes de Notifications**
+
+El contenedor Notifications gestiona el envío y registro de alertas, mensajes y recomendaciones. Para ello utiliza adaptadores específicos hacia Firebase Cloud Messaging y SendGrid, manteniendo la lógica de notificación desacoplada de los proveedores externos.
+
+![Diagrama de Componentes de Notifications](images/hydrosmart-components-notifications.png)
+
+**Diagrama de Componentes de Analytics / Reporting**
+
+El contenedor Analytics / Reporting permite consultar el dashboard, generar reportes, estimar proyecciones mensuales y recuperar lecturas históricas. Este contenedor utiliza MySQL para consultar información transaccional, MongoDB para acceder a telemetría histórica y AWS S3 para almacenar reportes descargables.
+
+![Diagrama de Componentes de Analytics / Reporting](images/hydrosmart-components-analytics-reporting.png)
+
+**Diagrama UML de detección de fuga**
+
+Como complemento a las vistas C4, se utiliza una vista UML del flujo de detección de fuga. Esta vista describe cómo una lectura enviada por sensores IoT puede ser registrada por el sistema, evaluada como posible anomalía y finalmente comunicada al usuario mediante una notificación.
+
+![Diagrama UML de detección de fuga](images/detecciondefuga.drawio.png)
+
+**Decisiones de Diseño Registradas**
+
+| ID | Decisión de diseño | Justificación |
+|---|---|---|
+| DD-01 | Centralizar el acceso al backend mediante un API Gateway. | Permite validar JWT, enrutar peticiones REST y mantener un punto único de entrada para la Web App y la Mobile App. |
+| DD-02 | Separar la lógica del sistema en contenedores por bounded context. | Reduce el acoplamiento entre funcionalidades como usuarios, dispositivos, consumo, anomalías, reportes, notificaciones, metas y suscripciones. |
+| DD-03 | Utilizar MySQL para datos transaccionales. | Los usuarios, perfiles, dispositivos, metas, alertas y suscripciones requieren integridad relacional y consultas estructuradas. |
+| DD-04 | Utilizar MongoDB para lecturas de consumo y telemetría. | Las lecturas de sensores se comportan como series de tiempo y pueden crecer rápidamente, por lo que requieren almacenamiento flexible y eficiente. |
+| DD-05 | Delegar autenticación a Firebase Authentication. | Reduce la complejidad interna de gestión de credenciales y permite validar identidad mediante tokens JWT. |
+| DD-06 | Separar detección de anomalías del registro de consumo. | Permite evolucionar las reglas de detección de fugas sin afectar la ingesta y persistencia de lecturas. |
+| DD-07 | Desacoplar notificaciones mediante adaptadores externos. | Facilita el envío de alertas por Firebase Cloud Messaging y correos por SendGrid sin acoplar la lógica de dominio a un proveedor específico. |
+| DD-08 | Almacenar reportes descargables en AWS S3. | Evita cargar la base de datos transaccional con archivos y permite gestionar documentos generados de forma escalable. |
+
 #### 4.3.1.7 Analysis of Current Design and Review Iteration Goal (Kanban Board)
+
+Al cierre de la primera iteración del proceso ADD, se revisa el estado del diseño arquitectónico de HydroSmart y se contrasta con el objetivo planteado para la iteración. Esta revisión permite identificar qué decisiones quedaron establecidas, qué elementos de la arquitectura ya cuentan con una responsabilidad clara y qué aspectos deberán refinarse en iteraciones posteriores.
+
+**Revisión del Objetivo de la Iteración**
+
+El objetivo principal de esta primera iteración fue establecer una base arquitectónica que permita soportar las funcionalidades esenciales de HydroSmart: autenticación de usuarios, gestión de dispositivos, registro de consumo, detección de anomalías, notificaciones, visualización de analíticas, metas de ahorro y gestión de suscripciones. Para ello, se definieron los contenedores principales, las interfaces de comunicación y las responsabilidades internas de los servicios más críticos.
+
+La iteración cumple con el objetivo planteado porque la arquitectura ya cuenta con una separación clara entre clientes, API Gateway, servicios backend, persistencia y sistemas externos. Además, las vistas C4 y de componentes permiten justificar cómo cada módulo contribuye a los drivers seleccionados: seguridad, mantenibilidad, performance, monitoreo oportuno y escalabilidad progresiva.
+
+**Revisión del Kanban Board**
+
+| Estado | Elementos revisados | Resultado |
+|---|---|---|
+| Completado | Definición de contenedores principales, API Gateway, bases de datos y sistemas externos. | La arquitectura cuenta con una vista general suficiente para explicar la distribución de responsabilidades. |
+| Completado | Diagramas de componentes de User Management, Consumption Monitoring, Anomaly Detection, Notifications y Analytics / Reporting. | Los contenedores críticos de la primera iteración quedan documentados con sus componentes internos. |
+| En progreso | Validación técnica de contratos entre servicios. | Se requiere detallar endpoints, payloads y respuestas esperadas entre los contenedores. |
+| En progreso | Integración con sensores IoT y flujo MQTT. | La arquitectura contempla el gateway MQTT, pero debe validarse con lecturas simuladas o reales. |
+| Pendiente | Pruebas de rendimiento del dashboard y notificaciones. | Deben ejecutarse en una iteración posterior para comprobar tiempos de respuesta y entrega de alertas. |
+
+**Análisis del Diseño Actual**
+
+Entre las fortalezas identificadas se encuentra la separación del sistema en bounded contexts, lo que facilita que User Management, Devices Management, Consumption Monitoring, Anomaly Detection, Notifications y Analytics / Reporting puedan evolucionar sin concentrar toda la lógica en un único componente. La decisión de mantener un API Gateway como punto de entrada mejora la seguridad y organiza el consumo de servicios desde la Web App y la Mobile App.
+
+Otra fortaleza importante es la separación de persistencia entre MySQL y MongoDB. MySQL se utiliza para datos transaccionales, mientras que MongoDB se reserva para lecturas de consumo y telemetría, lo cual resulta coherente con el volumen y naturaleza temporal de los datos generados por sensores IoT. Asimismo, la integración con servicios externos como Firebase Authentication, Firebase Cloud Messaging, SendGrid, Stripe/Culqi y AWS S3 reduce la complejidad interna y permite concentrar el desarrollo en el dominio principal del producto.
+
+**Áreas de Mejora**
+
+Como áreas de mejora, se identifica la necesidad de validar con mayor detalle las reglas de Anomaly Detection para reducir falsos positivos y asegurar que las alertas generadas sean realmente útiles para el usuario. También será necesario definir con mayor precisión los contratos de API entre los contenedores, especialmente para el flujo de telemetría, reportes y notificaciones. Además, la integración con sensores IoT debe ser probada con datos simulados o reales para confirmar que la arquitectura soporta lecturas continuas sin pérdida de información.
+
+**Conclusión de la Iteración**
+
+La primera iteración establece una base arquitectónica suficiente para continuar con el desarrollo de HydroSmart. Los contenedores principales, sus responsabilidades, las interfaces de comunicación y las decisiones de diseño ya se encuentran documentadas. En las siguientes iteraciones se deberá profundizar en pruebas de integración, refinamiento de reglas de detección, manejo de fallos en servicios externos y validación de rendimiento del dashboard y las notificaciones en escenarios de uso más cercanos a producción.
