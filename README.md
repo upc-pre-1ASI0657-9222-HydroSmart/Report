@@ -85,7 +85,7 @@ Finalmente, el usuario visualiza en su dashboard tanto la alerta recibida como e
 
 ### 4.1.5 Relational/Non Relational Database Diagram
 
-En esta sección se presentan los diagramas de base de datos que soportan la persistencia de cada bounded context de HydroSmart. En coherencia con el constraint R03 (cada bounded context gestiona su propia base de datos) y el constraint R08 (MySQL para los microservicios transaccionales y MongoDB para las lecturas de consumo como series de tiempo), la solución adopta un modelo de **persistencia poliglota**: las entidades de negocio con relaciones estructuradas y baja tasa de escritura se modelan de forma relacional en MySQL, mientras que el flujo continuo e inmutable de lecturas de los sensores se modela como documentos en MongoDB, optimizados para escritura masiva y consulta por rango de tiempo.
+En esta sección se presentan los diagramas de base de datos que soportan la persistencia de cada bounded context de HydroSmart. En coherencia con el constraint R03 (cada bounded context gestiona su propia base de datos) y el constraint R08 (separación entre persistencia transaccional y persistencia de telemetría), la solución adopta un modelo de **persistencia poliglota**: las entidades de negocio con relaciones estructuradas y baja tasa de escritura se modelan de forma relacional en MySQL, mientras que el flujo continuo e inmutable de lecturas de los sensores se modela como documentos en MongoDB, optimizados para escritura masiva y consulta por rango de tiempo.
 
 **Estimación de volumetría de telemetría**
 
@@ -895,10 +895,10 @@ Identificamos los factores técnicos, legales o de diseño que limitan y condici
 | R02 | AquaPulse no fabrica ni comercializa hardware: la captura de datos depende de sensores IoT y medidores inteligentes de terceros compatibles que publiquen sus lecturas mediante el protocolo MQTT. |
 | R03 | La plataforma y los servicios web deben seguir el enfoque de diseño DDD (Domain-Driven Design), con una arquitectura de microservicios en la que cada bounded context gestiona su propia base de datos. |
 | R04 | El backend debe exponer una API RESTful en formato JSON, documentada con OpenAPI 3.1 / Swagger, a través de un único API Gateway para su consumo desde la aplicación web y la aplicación móvil. |
-| R05 | Los microservicios deben desarrollarse en Java 17 o superior con Spring Boot 3. |
-| R06 | La aplicación web debe desarrollarse en Angular con TypeScript y la aplicación móvil en Flutter para Android e iOS. |
+| R05 | Los servicios backend deben permitir exponer APIs REST seguras, documentadas, escalables horizontalmente y mantenibles por bounded context. La tecnología específica del backend será seleccionada mediante análisis ADD. |
+| R06 | La aplicación web y la aplicación móvil deben permitir una experiencia responsive, segura y mantenible, con capacidad de consumir APIs REST protegidas. Los frameworks concretos serán seleccionados mediante análisis ADD. |
 | R07 | La landing page debe desarrollarse con HTML, CSS y JavaScript, y ser responsive para dispositivos móviles. |
-| R08 | Se debe usar MySQL como base de datos de los microservicios transaccionales y MongoDB para el almacenamiento de las lecturas de consumo como series de tiempo. |
+| R08 | La plataforma debe separar la persistencia transaccional de la persistencia de telemetría. La base transaccional debe soportar relaciones entre usuarios, propiedades, unidades, medidores, planes y notificaciones; mientras que la base de telemetría debe soportar almacenamiento eficiente de lecturas de consumo como series de tiempo. |
 | R09 | Las lecturas de los sensores deben recibirse mediante MQTT a través de un gateway de ingesta, y la comunicación asíncrona entre microservicios debe realizarse mediante RabbitMQ. |
 | R10 | El intercambio de datos entre clientes y servidor debe realizarse mediante HTTPS, y la conexión de los sensores mediante MQTT sobre TLS. |
 | R11 | El tratamiento de los datos personales y de consumo debe cumplir con la Ley N.° 29733, Ley de Protección de Datos Personales, y su reglamento. |
@@ -976,24 +976,97 @@ Evitar que un cambio en la gestión de propiedades afecte la detección de fugas
 
 #### 4.3.1.4 Choose One or More Design Concepts That Satisfy the Selected Drivers
 
-Considerando las necesidades funcionales de HydroSmart y la estructura definida previamente para la solución, se seleccionan conceptos arquitectónicos que permitan mantener una comunicación organizada entre la aplicación web, la lógica del sistema y la información almacenada. La propuesta toma como base el uso de DDD, una API REST y una organización por contextos funcionales, de manera que las principales operaciones de la plataforma puedan evolucionar sin afectar todo el sistema.
+Considerando las necesidades funcionales de HydroSmart y los atributos de calidad definidos previamente, se seleccionan conceptos arquitectónicos que permitan mantener una comunicación organizada entre la aplicación web, la aplicación móvil, la lógica del sistema y la información almacenada. La propuesta toma como base el uso de DDD, API REST, separación por bounded contexts, persistencia diferenciada y comunicación asíncrona para la ingesta de telemetría.
+
+Para evitar que la selección de tecnologías sea arbitraria, se realiza un análisis ADD comparando alternativas. Las tecnologías se eligen en función de su capacidad para satisfacer los atributos de calidad de rendimiento, disponibilidad, escalabilidad, seguridad, privacidad, recuperabilidad y mantenibilidad.
 
 **Performance:**
 
-- La aplicación web se comunicará con el backend mediante una API REST, permitiendo solicitar únicamente la información necesaria para cada funcionalidad. Esto resulta importante para las vistas que muestran datos de consumo, historial, reportes y comparativos, ya que la información debe llegar de forma clara y sin recargar innecesariamente la interfaz.
-- El procesamiento de los datos de consumo se concentrará en el backend, donde se realizan las consultas y operaciones necesarias para alimentar el Dashboard y los reportes. De esta manera, la aplicación web se enfoca principalmente en presentar la información al usuario, mientras que el servidor se encarga de procesarla y obtenerla desde la base de datos.
+- La aplicación web y móvil se comunican con el backend mediante APIs REST, permitiendo solicitar únicamente la información necesaria para cada funcionalidad. Esto es importante para las vistas de consumo, historial, reportes y comparativos.
+- El procesamiento de datos de consumo se concentra en el backend, donde se realizan consultas, agregaciones y cálculos para alimentar el dashboard y los reportes.
+- La telemetría de consumo se almacena separadamente de los datos transaccionales para evitar que el alto volumen de lecturas afecte operaciones como login, perfil, dispositivos, metas o suscripciones.
 
 **Security:**
 
-- El acceso a la plataforma contempla un proceso de autenticación de usuarios, permitiendo validar las credenciales antes de acceder a las funcionalidades privadas de HydroSmart. Esta responsabilidad se encuentra relacionada con el contexto de User Management y con los endpoints destinados al registro e inicio de sesión.
-- Las operaciones relacionadas con usuarios, perfiles, dispositivos y notificaciones se gestionan desde el backend mediante endpoints específicos. Esta separación permite centralizar el control de las operaciones y evitar que la aplicación web tenga acceso directo a la base de datos.
-- La gestión de preferencias y configuraciones del usuario también se mantiene dentro del backend, permitiendo conservar de forma persistente información como las configuraciones de notificaciones.
+- El acceso a la plataforma contempla autenticación de usuarios y validación de tokens JWT antes de permitir el uso de funcionalidades privadas.
+- Las operaciones relacionadas con usuarios, perfiles, dispositivos, lecturas, notificaciones y reportes se gestionan desde el backend mediante endpoints controlados.
+- La aplicación web y móvil no acceden directamente a las bases de datos; todo intercambio de información pasa por los servicios backend y el API Gateway.
 
-**Interoperabilidad y Estructura (Modificabilidad):**
+**Interoperabilidad y Modificabilidad:**
 
-- HydroSmart organiza la lógica del dominio mediante bounded contexts, separando responsabilidades como User Management, Consumption Analytics / Reporting, Consumption Monitoring, Anomaly Detection, Notification y Saving Goals. Esta organización reduce el acoplamiento entre funcionalidades y facilita trabajar sobre una parte específica del sistema.
-- El backend se implementa con .NET y utiliza MySQL para la persistencia de la información. La comunicación con la aplicación se realiza mediante una API REST, cuyos endpoints fueron documentados y probados con Swagger. Esto establece una interfaz uniforme entre el frontend y los servicios del sistema.
-- La solución también mantiene preparada la gestión de dispositivos para una futura integración con sensores o medidores inteligentes, sin hacer que el funcionamiento inicial dependa de hardware especializado.
+- HydroSmart organiza la lógica del dominio mediante bounded contexts, separando responsabilidades como User Management, Devices Management, Consumption Monitoring, Anomaly Detection, Analytics / Reporting, Notifications, Saving Goals y Subscription Management.
+- Las integraciones con servicios externos se encapsulan mediante adaptadores, evitando que el dominio dependa directamente de Firebase, SendGrid, Stripe, AWS S3 o del gateway MQTT.
+- La solución permite incorporar nuevos sensores, canales de notificación o proveedores externos sin modificar el núcleo del dominio.
+
+**Análisis ADD para la selección de tecnologías**
+
+Antes de definir tecnologías específicas, se realiza un análisis de alternativas siguiendo el enfoque ADD. La selección se basa en los atributos de calidad definidos previamente. De esta manera, las herramientas elegidas no se consideran restricciones arbitrarias, sino decisiones arquitectónicas justificadas por los drivers del sistema.
+
+**Decisión 1: Tecnología para servicios backend**
+
+| Alternativa | Ventajas | Desventajas | Evaluación frente a QAS |
+|---|---|---|---|
+| **.NET REST API** | Buen soporte para APIs REST, seguridad, documentación con Swagger, arquitectura por capas, integración con bases SQL y despliegue cloud. | Requiere organizar correctamente los bounded contexts para evitar un backend monolítico. | Alta compatibilidad con seguridad, mantenibilidad y escalabilidad. |
+| **Java 17 + Spring Boot** | Ecosistema maduro para microservicios, seguridad, mensajería y despliegue empresarial. | Implica mayor complejidad si el avance del proyecto ya se encuentra orientado a otro stack. | Buena alternativa, pero menos alineada con los elementos ya instanciados en el proyecto. |
+| **Node.js + Express/NestJS** | Ligero y rápido para construir APIs. | Puede crecer de forma desordenada si no se define una arquitectura estricta; menor robustez transaccional si se implementa sin disciplina. | Útil para prototipos, pero menos conveniente para una solución dividida por bounded contexts. |
+
+**Decisión seleccionada:** Se selecciona **.NET REST API** para los servicios backend, debido a que permite construir APIs REST seguras, documentadas y mantenibles. Además, facilita la organización por capas y módulos funcionales, alineándose con los bounded contexts definidos para HydroSmart. Esta decisión apoya los atributos de mantenibilidad, seguridad y escalabilidad.
+
+**Decisión 2: Base de datos transaccional**
+
+| Alternativa | Ventajas | Desventajas | Evaluación frente a QAS |
+|---|---|---|---|
+| **MySQL** | Adecuado para datos relacionales, ampliamente soportado, buen rendimiento para operaciones CRUD y facilidad de integración con .NET. | No es ideal para almacenar grandes volúmenes de telemetría continua. | Buena opción para usuarios, perfiles, dispositivos, planes, metas y notificaciones. |
+| **PostgreSQL** | Mayor riqueza funcional, buen soporte para consultas complejas y extensiones. | Puede ser más complejo de administrar para el alcance del proyecto. | También viable, pero MySQL cubre suficientemente las necesidades transaccionales del sistema. |
+| **MongoDB** | Flexible para documentos y datos semiestructurados. | No es la mejor opción para relaciones estrictas como usuario, propiedad, unidad y medidor. | No se selecciona como base transaccional principal por el peso de las relaciones del dominio. |
+
+**Decisión seleccionada:** Se selecciona **MySQL** como base de datos transaccional, porque el dominio requiere relaciones claras entre usuarios, propiedades, unidades, medidores, planes, metas, alertas y notificaciones. Esta decisión responde a los atributos de consistencia, mantenibilidad y privacidad, ya que facilita controlar qué usuario puede acceder a qué datos.
+
+**Decisión 3: Base de datos para telemetría de consumo**
+
+| Alternativa | Ventajas | Desventajas | Evaluación frente a QAS |
+|---|---|---|---|
+| **MongoDB Time Series** | Diseñado para almacenar datos de series de tiempo, flexible para lecturas IoT, permite consultas históricas y agregaciones por periodos. | Requiere separar claramente la telemetría de los datos transaccionales. | Alta compatibilidad con rendimiento y escalabilidad para lecturas continuas. |
+| **MySQL** | Ya se usa para datos transaccionales. | Puede degradarse al almacenar millones de lecturas continuas junto con datos operativos. | No recomendable para telemetría masiva. |
+| **PostgreSQL / TimescaleDB** | Muy potente para series de tiempo y análisis temporal. | Añade una extensión y mayor complejidad operativa al despliegue. | Buena alternativa, pero menos simple para el alcance académico del proyecto. |
+
+**Decisión seleccionada:** Se selecciona **MongoDB Time Series** para almacenar lecturas de consumo. Esta decisión se justifica por la volumetría de telemetría esperada: si se procesan 20,000 lecturas por minuto y cada lectura ocupa aproximadamente 0.5 KB, el sistema recibiría cerca de 10 MB por minuto, 14.4 GB por día y aproximadamente 432 GB por mes. Por ello, separar la telemetría en una base orientada a series de tiempo permite proteger el rendimiento de la base transaccional.
+
+**Decisión 4: Aplicación web**
+
+| Alternativa | Ventajas | Desventajas | Evaluación frente a QAS |
+|---|---|---|---|
+| **Angular** | Framework estructurado, adecuado para dashboards, formularios, módulos y aplicaciones empresariales. | Mayor curva de aprendizaje inicial. | Favorece mantenibilidad y organización en una aplicación con varias vistas. |
+| **React** | Flexible, popular y con amplio ecosistema. | Requiere más decisiones adicionales de arquitectura, librerías y convenciones. | Buena alternativa, pero menos prescriptiva para un equipo que necesita estructura clara. |
+| **Vue** | Simple y rápido para interfaces pequeñas o medianas. | Menor alineación con aplicaciones empresariales complejas y modulares. | Adecuado para interfaces simples, pero menos conveniente para un dashboard modular. |
+
+**Decisión seleccionada:** Se selecciona **Angular** para la aplicación web, debido a que HydroSmart requiere una interfaz con dashboard, perfil, dispositivos, reportes, configuración y notificaciones. Angular facilita organizar estas funcionalidades por módulos, mantener rutas protegidas y construir una aplicación web escalable.
+
+**Decisión 5: Aplicación móvil**
+
+| Alternativa | Ventajas | Desventajas | Evaluación frente a QAS |
+|---|---|---|---|
+| **Flutter** | Una sola base de código para Android e iOS, buen rendimiento visual y soporte para notificaciones móviles. | Requiere conocimientos específicos de Dart. | Alta compatibilidad con mantenibilidad y portabilidad móvil. |
+| **React Native** | Ecosistema amplio y reutilización de conocimientos JavaScript. | Puede requerir ajustes nativos adicionales según el dispositivo. | Viable, pero Flutter ofrece mayor consistencia visual multiplataforma. |
+| **Aplicaciones nativas Android/iOS** | Máximo control sobre cada plataforma. | Duplica esfuerzo de desarrollo y mantenimiento. | No conveniente para el alcance del proyecto. |
+
+**Decisión seleccionada:** Se selecciona **Flutter** para la aplicación móvil porque permite entregar una experiencia consistente en Android e iOS con una sola base de código. Esta decisión responde a la mantenibilidad, portabilidad y reducción de esfuerzo de desarrollo.
+
+**Decisión 6: Comunicación de sensores e integración asíncrona**
+
+| Alternativa | Ventajas | Desventajas | Evaluación frente a QAS |
+|---|---|---|---|
+| **MQTT + RabbitMQ** | MQTT es adecuado para sensores IoT; RabbitMQ permite colas durables, reintentos y desacoplamiento entre servicios. | Requiere configurar gateway de ingesta y manejo de mensajes. | Alta compatibilidad con disponibilidad, recuperabilidad y escalabilidad. |
+| **HTTP Polling** | Fácil de implementar inicialmente. | Ineficiente para lecturas frecuentes; genera carga innecesaria y mayor latencia. | No recomendable para telemetría continua. |
+| **Kafka** | Muy potente para streaming a gran escala. | Mayor complejidad operativa para el alcance del proyecto. | Puede ser excesivo para una primera versión académica. |
+
+**Decisión seleccionada:** Se selecciona **MQTT + RabbitMQ**. MQTT permite recibir lecturas desde sensores o medidores inteligentes compatibles, mientras que RabbitMQ permite desacoplar la ingesta de telemetría del procesamiento interno. Esta decisión fortalece la recuperabilidad, ya que las lecturas pueden mantenerse en cola ante fallos temporales de los servicios consumidores.
+
+**Conclusión del análisis ADD**
+
+Luego de evaluar las alternativas, la arquitectura propuesta queda sustentada por decisiones trazables a los atributos de calidad. Las tecnologías seleccionadas no se definen por preferencia del equipo, sino por su capacidad para satisfacer las necesidades de HydroSmart: procesamiento continuo de lecturas, seguridad en el acceso, separación entre datos transaccionales y telemetría, escalabilidad de los servicios, integración con sensores y mantenibilidad del sistema.
+
+Como resultado, se selecciona una arquitectura basada en **.NET REST API**, **Angular**, **Flutter**, **MySQL**, **MongoDB Time Series**, **MQTT**, **RabbitMQ**, **Firebase Authentication**, **Firebase Cloud Messaging**, **SendGrid** y **AWS S3**, cada una asociada a una responsabilidad arquitectónica específica.
 
 #### 4.3.1.5 Instantiate Architectural Elements, Allocate Responsibilities, and Define Interfaces
 
