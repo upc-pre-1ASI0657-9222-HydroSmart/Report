@@ -85,13 +85,391 @@ Finalmente, el usuario visualiza en su dashboard tanto la alerta recibida como e
 
 ### 4.1.5 Relational/Non Relational Database Diagram
 
+En esta sección se presentan los diagramas de base de datos que soportan la persistencia de cada bounded context de HydroSmart. En coherencia con el constraint R03 (cada bounded context gestiona su propia base de datos) y el constraint R08 (MySQL para los microservicios transaccionales y MongoDB para las lecturas de consumo como series de tiempo), la solución adopta un modelo de **persistencia poliglota**: las entidades de negocio con relaciones estructuradas y baja tasa de escritura se modelan de forma relacional en MySQL, mientras que el flujo continuo e inmutable de lecturas de los sensores se modela como documentos en MongoDB, optimizados para escritura masiva y consulta por rango de tiempo.
+
+**Estimación de volumetría de telemetría**
+
+Antes de justificar la elección de MongoDB para las lecturas, se dimensiona la carga esperada tomando como base la meta de crecimiento de 800 usuarios activos definida en el Escenario 5 (sección 4.2.3) y un promedio estimado de 1.5 medidores por usuario (considerando que un propietario puede tener medidores por zona — GENERAL y RIEGO — y que un arrendador administra varias unidades, cada una con al menos un medidor):
+
+| Parámetro | Valor estimado |
+|---|---|
+| Usuarios activos (meta) | 800 |
+| Medidores activos estimados (800 × 1.5) | 1 200 |
+| Frecuencia de envío por medidor | 1 lectura cada 30 segundos (2 lecturas/min) |
+| Lecturas por minuto | 1 200 × 2 = 2 400 |
+| Lecturas por hora | 144 000 |
+| Lecturas por día | ≈ 3.46 millones |
+| Lecturas por mes (30 días) | ≈ 103.7 millones |
+| Lecturas por año | ≈ 1 261 millones |
+| Peso estimado por documento BSON (meterId, timestamp, volumeLiters, instantFlowRate, accumulatedLiters + overhead de índices) | ≈ 200 bytes |
+| Almacenamiento crudo estimado por día | ≈ 0.69 GB |
+| Almacenamiento crudo estimado por mes | ≈ 20.7 GB |
+| Almacenamiento crudo estimado por año | ≈ 250 GB (sin comprimir) |
+
+Este volumen (2 400 lecturas/min en operación estable, con margen hasta las 20 000 lecturas/min soportadas según el Escenario 5) confirma que una base de datos relacional tradicional no es adecuada como almacén primario de lecturas crudas, ya que el costo de mantener índices B-Tree sobre una tabla que crece en cientos de millones de filas por año degradaría el rendimiento de escritura. Por ello, MongoDB almacena las lecturas crudas como series de tiempo, y el bounded context de Analíticas y Reportes consolida agregados diarios en MySQL (patrón CQRS, ya descrito en 4.1.2), aplicando además la política de retención de lecturas crudas por plan de suscripción mencionada en el Architectural Concern 9 (sección 4.2.5) para controlar el crecimiento indefinido del volumen estimado.
+
+**Vinculación Medidor – Propiedad – Unidad – Usuario**
+
+Uno de los aspectos más críticos del modelo de datos es garantizar la trazabilidad completa entre el usuario, la propiedad que posee o arrienda, la unidad habitacional y el medidor físico que reporta el consumo, ya que de esta cadena depende tanto el control de acceso (R01) como la facturación y las alertas por unidad. Esta cadena atraviesa dos bounded contexts: **Gestión de Identidad (IAM)** y **Propiedades y Unidades**, y su estado se replica de forma asíncrona hacia **Consumo y Telemetría** para que este último no dependa de llamadas síncronas en el camino crítico de ingesta.
+
+```mermaid
+erDiagram
+    USERS ||--o{ PROPERTIES : "posee (owner_id)"
+    PROPERTIES ||--o{ UNITS : "agrupa"
+    UNITS ||--o{ UNIT_TENANTS : "asigna"
+    USERS ||--o{ UNIT_TENANTS : "ocupa (tenant_user_id)"
+    UNITS ||--o{ UNIT_METER_LINKS : "vincula"
+    METERS ||--o{ UNIT_METER_LINKS : "es vinculado"
+
+    USERS {
+        bigint id PK
+        string firebase_uid UK
+        string email UK
+    }
+    PROPERTIES {
+        bigint id PK
+        bigint owner_id "ref. lógica a USERS.id (sin FK física entre microservicios)"
+        string name
+        string address
+    }
+    UNITS {
+        bigint id PK
+        bigint property_id FK
+        string code
+        string status
+    }
+    UNIT_TENANTS {
+        bigint id PK
+        bigint unit_id FK
+        bigint tenant_user_id "ref. lógica a USERS.id"
+        date start_date
+        date end_date
+        string status
+    }
+    METERS {
+        bigint id PK
+        string serial_code UK
+        string zone
+        string brand
+    }
+    UNIT_METER_LINKS {
+        bigint id PK
+        bigint unit_id FK
+        bigint meter_id FK
+        datetime linked_at
+        datetime unlinked_at "NULL mientras el vínculo está activo (R14)"
+    }
+```
+
+El constraint R14 (un medidor solo puede estar vinculado a una unidad a la vez) se implementa mediante la tabla `unit_meter_links`, exigiendo `unlinked_at IS NULL` como condición de unicidad activa por `meter_id`. Este vínculo es propiedad del bounded context **Propiedades y Unidades** (allí se registra y se rompe la asociación cuando el arrendador reemplaza un medidor o desvincula una unidad), pero **Consumo y Telemetría** necesita conocerlo en cada lectura sin incurrir en una llamada síncrona. Por ello, cuando se registra o modifica un vínculo se publica el evento de dominio `MeterLinkedToUnit` / `MeterUnlinked`, que Consumo y Telemetría consume para mantener una réplica local de solo lectura (`meter_references`) con `meter_id`, `unit_id_ref`, `property_id_ref` y `owner_user_id_ref`, siguiendo el mismo patrón de réplicas asíncronas vía eventos aplicado entre los demás bounded contexts del sistema.
+
+**Microservicio: Gestión de Identidad (IAM)**
+
+```mermaid
+erDiagram
+    USERS ||--|| PROFILES : "posee"
+    USERS ||--o{ USER_ROLES : "tiene"
+    ROLES ||--o{ USER_ROLES : "otorga"
+
+    USERS {
+        bigint id PK
+        string firebase_uid UK
+        string email UK
+        string phone
+        string status
+        datetime created_at
+    }
+    PROFILES {
+        bigint id PK
+        bigint user_id FK "UK, relación 1 a 1"
+        string first_name
+        string last_name
+        string avatar_url
+    }
+    ROLES {
+        bigint id PK
+        string code UK "PROPIETARIO | ARRENDADOR | INQUILINO | ADMINISTRADOR"
+    }
+    USER_ROLES {
+        bigint user_id PK,FK
+        bigint role_id PK,FK
+        datetime assigned_at
+    }
+```
+
+La base de datos de IAM se implementa en MySQL y no persiste contraseñas: `users.firebase_uid` es la única referencia a Firebase Authentication (constraint R01), garantizando que la validación de credenciales se delegue completamente al proveedor externo. La relación `users`–`profiles` es uno a uno y separa el dato de autenticación del dato biográfico. La asignación de roles es muchos a muchos mediante `user_roles`, lo que permite que un mismo usuario acumule más de un rol (por ejemplo, ser propietario de una vivienda y a la vez arrendador de un departamento), sin necesidad de duplicar su cuenta.
+
+**Microservicio: Propiedades y Unidades**
+
+```mermaid
+erDiagram
+    PROPERTIES ||--o{ UNITS : "agrupa"
+    UNITS ||--o{ UNIT_TENANTS : "asigna"
+    UNITS ||--o{ UNIT_METER_LINKS : "vincula"
+
+    PROPERTIES {
+        bigint id PK
+        bigint owner_id "ref. lógica a IAM.users.id"
+        string name
+        string address
+        string city
+        datetime created_at
+    }
+    UNITS {
+        bigint id PK
+        bigint property_id FK
+        string code
+        string type "CASA | DEPARTAMENTO"
+        string status "ACTIVA | INACTIVA"
+    }
+    UNIT_TENANTS {
+        bigint id PK
+        bigint unit_id FK
+        bigint tenant_user_id "ref. lógica a IAM.users.id"
+        date start_date
+        date end_date
+        string status "ACTIVO | FINALIZADO"
+    }
+    UNIT_METER_LINKS {
+        bigint id PK
+        bigint unit_id FK
+        bigint meter_id "ref. maestra propia (serial_code)"
+        datetime linked_at
+        datetime unlinked_at
+    }
+```
+
+`properties.owner_id` y `unit_tenants.tenant_user_id` son referencias lógicas (no llaves foráneas físicas) hacia la base de datos de IAM, dado que cada microservicio administra su propio esquema (R03); la validez de estas referencias se comprueba en tiempo de escritura mediante el patrón Facade/ACL descrito en 4.1.6, y no mediante integridad referencial de base de datos entre esquemas distintos.
+
+**Microservicio: Consumo y Telemetría**
+
+```mermaid
+erDiagram
+    METER_REFERENCES ||--o{ TARIFFS : "aplica (por defecto)"
+    TARIFFS ||--o{ TARIFF_RANGES : "define"
+
+    METER_REFERENCES {
+        bigint meter_id PK "sincronizado vía evento MeterLinkedToUnit"
+        bigint unit_id_ref
+        bigint property_id_ref
+        bigint owner_user_id_ref
+        string zone "RIEGO | COCINA | BAÑO | GENERAL"
+        string status "ONLINE | OFFLINE"
+        datetime last_reading_at
+    }
+    TARIFFS {
+        bigint id PK
+        string provider "SEDAPAL"
+        decimal fixed_charge
+        date effective_from
+        date effective_to
+    }
+    TARIFF_RANGES {
+        bigint id PK
+        bigint tariff_id FK
+        decimal range_from_m3
+        decimal range_to_m3
+        decimal price_per_m3
+    }
+```
+
+Este esquema relacional (MySQL) almacena únicamente metadatos de bajo volumen: la réplica de medidores (`meter_references`, descrita en el punto anterior) y las tarifas parametrizadas y versionadas por fecha de vigencia (Escenario 13, sección 4.2.3), evitando así codificar la estructura tarifaria como lógica de programa. Las lecturas propiamente dichas —el dato de alto volumen dimensionado en la estimación de volumetría— se modelan como documentos no relacionales en MongoDB:
+
+```mermaid
+erDiagram
+    CONSUMPTION_READINGS {
+        ObjectId _id PK
+        bigint meterId "índice compuesto con timestamp"
+        datetime timestamp
+        double volumeLiters
+        double instantFlowRate
+        double accumulatedLiters "valor acumulado del medidor, ver Concern 4"
+        datetime receivedAt
+    }
+```
+
+La colección `consumption_readings` no define un esquema fijo de columnas ni relaciones declarativas: cada documento es autocontenido y se indexa por el par (`meterId`, `timestamp`) para soportar eficientemente las consultas por rango de fechas que alimentan el historial y los reportes. La clave de idempotencia (`meterId` + `timestamp` del sensor) permite descartar reenvíos duplicados en la capa de aplicación (patrón Idempotent Consumer, sección 4.1.6), y el campo `accumulatedLiters` habilita recalcular el consumo del intervalo aun cuando se pierdan lecturas intermedias (Architectural Concern 4, sección 4.2.5).
+
+**Microservicio: Alertas y Notificaciones**
+
+```mermaid
+erDiagram
+    ALERT_RULES ||--o{ ALERTS : "puede generar"
+
+    ALERT_RULES {
+        bigint id PK
+        bigint user_id "ref. lógica a IAM.users.id"
+        bigint meter_id "ref. lógica a meter_references"
+        decimal threshold_liters
+        datetime created_at
+    }
+    ALERTS {
+        bigint id PK
+        bigint meter_id
+        bigint unit_id
+        string type "CONSUMO_INUSUAL | POSIBLE_FUGA | META_PROXIMA"
+        string severity "INFO | WARNING | CRITICAL"
+        string status "ACTIVA | ATENDIDA"
+        datetime created_at
+        datetime resolved_at
+    }
+```
+
+`alert_rules` almacena el umbral configurado por el usuario (US08), y `alerts` registra cada anomalía detectada por las estrategias del patrón Strategy (4.1.6), conservando la zona del medidor (`unit_id`) que originó la lectura para poder ubicar aproximadamente la fuga (US09).
+
+**Microservicio: Ahorro y Recomendaciones**
+
+```mermaid
+erDiagram
+    SAVING_GOALS ||--o{ RECOMMENDATIONS : "puede originar"
+
+    SAVING_GOALS {
+        bigint id PK
+        bigint user_id "ref. lógica a IAM.users.id"
+        string period_month UK "único junto con user_id (R14)"
+        decimal target_amount_pen
+        decimal target_liters
+        decimal current_progress_liters
+        string status "ACTIVA | CUMPLIDA | EXCEDIDA"
+    }
+    RECOMMENDATIONS {
+        bigint id PK
+        bigint saving_goal_id FK
+        string message
+        datetime created_at
+    }
+```
+
+El constraint de negocio "solo una meta activa por usuario y periodo" (R14) se implementa como una restricción de unicidad compuesta sobre (`user_id`, `period_month`), evitando a nivel de base de datos que se creen metas duplicadas para el mismo mes.
+
+**Microservicio: Analíticas y Reportes**
+
+```mermaid
+erDiagram
+    DAILY_CONSUMPTION {
+        bigint id PK
+        bigint meter_id
+        bigint unit_id
+        date consumption_date
+        decimal total_liters
+        decimal total_cost_pen
+    }
+    REPORTS {
+        bigint id PK
+        bigint unit_id
+        bigint requested_by_user_id
+        date period_from
+        date period_to
+        string status "EN_PROCESO | DISPONIBLE | ERROR"
+        string file_url
+        datetime created_at
+    }
+```
+
+`daily_consumption` es el modelo de lectura (read model) del patrón CQRS: se actualiza de forma asíncrona al consumir `ConsumptionRecorded` desde MongoDB/RabbitMQ y evita recalcular el historial a partir de las lecturas crudas en cada consulta al dashboard (Escenario 6, sección 4.2.3). `reports` referencia el archivo generado y almacenado en AWS S3 (R16), y sus filas no se modifican una vez marcadas como `DISPONIBLE`, preservando su validez como evidencia ante disputas (Architectural Concern 12).
+
+**Microservicio: Suscripciones**
+
+```mermaid
+erDiagram
+    PLANS ||--o{ SUBSCRIPTIONS : "define"
+
+    PLANS {
+        bigint id PK
+        string code UK "FREEMIUM | PREMIUM | ARRENDADOR"
+        decimal price_min_pen
+        decimal price_max_pen
+        string billing_period
+    }
+    SUBSCRIPTIONS {
+        bigint id PK
+        bigint user_id "ref. lógica a IAM.users.id"
+        bigint plan_id FK
+        string status "PENDING | ACTIVE | CANCELLED | EXPIRED"
+        datetime started_at
+        datetime expires_at
+        string payment_provider_ref
+    }
+```
+
+`plans` refleja los tres planes y rangos de precio definidos en el constraint R13 (Freemium, Premium y Arrendador), y `subscriptions.payment_provider_ref` conserva únicamente la referencia de la transacción de Stripe/Culqi, sin persistir datos de tarjeta en la base de datos de HydroSmart (Escenario 8, sección 4.2.3).
+
 ### 4.1.6 Design Patterns
+
+A continuación se detallan los patrones de diseño que se emplearán en la construcción de los microservicios de HydroSmart, organizados por su intención (creacionales, estructurales y de comportamiento) y vinculados al bounded context donde se aplican. Estos patrones instancian, a nivel de código, los estilos y principios ya definidos en la sección 4.1.2.
+
+**1. Patrones Creacionales: Flexibilidad en la Construcción**
+
+- **Factory Method:** empleado en el microservicio de Alertas y Notificaciones para instanciar la estrategia de detección correspondiente (umbral fijo, flujo continuo o desviación histórica) a partir del tipo de regla configurada, sin que el código cliente conozca la clase concreta de cada detector.
+- **Builder:** utilizado en el microservicio de Analíticas y Reportes para construir el objeto `Report` (que combina periodo, agregados diarios, formato de salida y metadatos de auditoría) de forma incremental, evitando constructores con una cantidad excesiva de parámetros.
+
+**2. Patrones Estructurales: Organización y Abstracción**
+
+- **API Gateway:** centraliza el acceso al backend mediante un único punto de entrada que maneja autenticación, enrutamiento y validaciones básicas antes de llegar a los microservicios internos.
+- **Facade Pattern (Anti-Corruption Layer):** aplicado en la comunicación entre bounded contexts; por ejemplo, el microservicio de Propiedades y Unidades expone una fachada simplificada para que Alertas y Notificaciones o Analíticas y Reportes verifiquen la existencia y el rol de un usuario sin acoplarse a la implementación interna de IAM (US11, US12).
+- **Adapter Pattern:** traduce los formatos particulares de servicios externos (Firebase Authentication, Firebase Cloud Messaging, SendGrid, Stripe/Culqi, sensores IoT de distintos fabricantes) al modelo interno de HydroSmart, aislando el dominio de los contratos de terceros (Architectural Concern 2, sección 4.2.5).
+- **Repository Pattern:** abstrae el acceso a los datos definidos en 4.1.5, permitiendo, por ejemplo, migrar la persistencia de lecturas hacia otra base optimizada para series de tiempo sin alterar la lógica de dominio de Consumo y Telemetría (Escenario 5 de mantenibilidad, sección 4.2.3).
+- **Layered Architecture:** cada microservicio se organiza en capas de presentación (controladores REST), aplicación (casos de uso), dominio y persistencia, separando la lógica de negocio de los frameworks y proveedores externos (principio de la sección 4.1.1).
+
+**3. Patrones de Comportamiento: Colaboración y Escalabilidad**
+
+- **Observer Pattern (Eventos de Dominio):** cuando Consumo y Telemetría registra una lectura, publica `ConsumptionRecorded` para que Alertas y Notificaciones y Analíticas y Reportes reaccionen de forma desacoplada, sin conocerse entre sí.
+- **Strategy Pattern:** encapsula los distintos algoritmos de detección de anomalías (umbral configurable, flujo continuo fuera de horario, desviación respecto a la línea base histórica) bajo una interfaz común en el microservicio de Alertas y Notificaciones (US09), facilitando incorporar nuevas reglas sin modificar las existentes.
+- **CQRS (Command Query Responsibility Segregation):** separa los comandos que alteran el estado (`RegisterConsumptionCommand`, `CreateSavingGoalCommand`) de las consultas de solo lectura (`GetDashboardSummaryQuery`, `GetConsumptionHistoryQuery`), permitiendo que el volumen constante de escritura de lecturas no degrade las consultas masivas del historial (Escenario 6 y 7, sección 4.2.3).
+- **Idempotent Consumer:** aplicado en Consumo y Telemetría para descartar lecturas duplicadas provenientes de reenvíos de red del sensor, usando la clave (`meterId`, `timestamp`) descrita en 4.1.5 (Architectural Concern 4).
+- **Chain of Responsibility:** implementado en el envío de alertas críticas, encadenando el canal de notificación push (Firebase Cloud Messaging) con el canal alternativo de correo (SendGrid) como siguiente eslabón cuando el primero falla, sin que el emisor de la alerta conozca cuál de los dos canales finalmente la entregó (Escenario 11, sección 4.2.3).
+- **Circuit Breaker:** protege las llamadas salientes hacia servicios externos no críticos (pasarela de pagos, almacenamiento de imágenes), evitando que una degradación de estos proveedores bloquee hilos o recursos del microservicio que los invoca, y permitiendo una respuesta rápida de "servicio no disponible" mientras el proveedor se recupera (Architectural Concern 10, sección 4.2.5).
+- **Template Method:** define la estructura común del ciclo de vida de un reporte descargable en Analíticas y Reportes (validar periodo → consolidar agregados → generar archivo → publicar en S3 → notificar), dejando que cada formato de salida (PDF, CSV) implemente únicamente el paso de serialización.
+- **RESTful API Design:** buenas prácticas de recursos, verbos HTTP y códigos de estado consistentes en todos los endpoints expuestos a través del API Gateway, documentados con OpenAPI 3.1 (R04).
 
 ### 4.1.7 Tactics
 
-## 4.2 Architectural Drivers
+Siguiendo el catálogo de tácticas arquitectónicas del método ADD, se seleccionan tácticas concretas para cada atributo de calidad priorizado en los Quality Attribute Scenarios (sección 4.2.3) y en los constraints (sección 4.2.4), evitando dejar el atributo "tiempo real" como una noción genérica: cada táctica se ancla a una medida de respuesta numérica ya comprometida en un escenario específico.
 
-### 4.2.1 Design Purpose
+**Disponibilidad**
+
+- **Redundancia activa (Active Redundancy):** múltiples instancias del microservicio de Consumo y Telemetría procesan en paralelo; ante la caída de un nodo, el balanceador de carga redirige el tráfico a las instancias activas en menos de 5 segundos, sin pérdida de lecturas (Escenario 1, sección 4.2.3).
+- **Heartbeat:** cada medidor debe emitir una señal periódica; su ausencia marca el medidor como OFFLINE en `meter_references` (4.1.5) en un máximo de 5 minutos (Escenario 2).
+- **Colas durables con acknowledgement:** RabbitMQ retiene las lecturas en cola ante una falla transitoria del microservicio consumidor, garantizando disponibilidad del 99.9 % (Escenario 1) sin pérdida de mensajes.
+
+**Rendimiento**
+
+- **Introducir concurrencia y balanceo de carga:** consumidores competidores en RabbitMQ escalan horizontalmente según el tamaño de la cola, soportando hasta 20 000 lecturas por minuto con un retraso menor a 5 segundos (Escenario 5).
+- **Mantener múltiples copias de datos (modelo de lectura CQRS):** los agregados diarios precalculados en `daily_consumption` (4.1.5) evitan recalcular el consumo desde las lecturas crudas, permitiendo que el dashboard cargue en menos de 2 segundos (Escenario 6) y la proyección mensual en menos de 3 segundos (Escenario 7).
+- **Reducir la sobrecarga computacional (índices):** los índices compuestos (`meterId`, `timestamp`) en MongoDB y las claves de unicidad en MySQL descritos en 4.1.5 evitan escaneos completos al resolver las consultas de historial.
+- **Comunicación asíncrona no bloqueante:** el envío de la notificación push tras `LeakDetected` se procesa fuera del hilo de ingesta, cumpliendo la entrega en menos de 15 segundos en el percentil 95 (Escenario 2 de la segunda tabla de QAS, sección 4.2.3).
+
+**Escalabilidad**
+
+- **Servicios sin estado (Stateless Services) con autoescalado horizontal:** los microservicios no retienen sesión localmente, permitiendo que la infraestructura escale de 500 a 5 000 sensores activos sin incrementar la latencia de procesamiento en más de un 20 % (Escenario 4 de la segunda tabla de QAS).
+- **Particionamiento por bounded context:** cada microservicio escala de forma independiente según su propia demanda (por ejemplo, Consumo y Telemetría ante picos de ingesta, sin necesidad de escalar Suscripciones), evitando el acoplamiento de capacidad entre dominios distintos.
+
+**Seguridad**
+
+- **Autenticar actores:** validación criptográfica de la firma y expiración del JWT emitido por Firebase Authentication en el API Gateway, rechazando el 100 % de los tokens inválidos o expirados con estado 401 (Escenario 8).
+- **Autorizar actores:** verificación de la relación de propiedad (`owner_id`) o de asignación (`unit_tenants`) antes de exponer datos de una unidad, rechazando con estado 403 el 100 % de los accesos no autorizados (Escenario 9).
+- **Autenticación a nivel de dispositivo:** cada sensor se conecta mediante MQTT sobre TLS (R10) con credenciales únicas por medidor, restringiendo su publicación a su propio tópico y evitando la suplantación de sensores (Escenario 10).
+
+**Privacidad**
+
+- **Limitar el acceso por consentimiento y finalidad:** los datos de consumo de una unidad, que revelan hábitos y horarios del hogar, se exponen exclusivamente al propietario o arrendador asociado, al inquilino asignado y al administrador autorizado, en cumplimiento de la Ley N.° 29733 (R11, Architectural Concern 8, sección 4.2.5).
+- **Anonimización de datos en analíticas agregadas:** los agregados publicados en `daily_consumption` (4.1.5) no exponen el detalle de lecturas individuales fuera del contexto de la unidad correspondiente, limitando la superficie de exposición de patrones de comportamiento del hogar.
+
+**Recuperabilidad / Resiliencia**
+
+- **Checkpoint / rollback transaccional:** cada lectura se persiste de forma transaccional antes de publicar `ConsumptionRecorded`, de modo que un fallo durante el procesamiento no deja el sistema en un estado parcialmente consistente (principio de integridad de la sección 4.1.1).
+- **Reintentos con espera exponencial y canal alternativo:** ante la falla del proveedor de notificaciones push, el sistema reintenta y conmuta al canal de correo (SendGrid), asegurando que el 99 % de las alertas críticas llegue por al menos un canal en menos de 5 minutos (Escenario 11).
+- **Retención y respaldo de lecturas crudas:** la política de retención de MongoDB por plan de suscripción (Architectural Concern 9) se complementa con snapshots periódicos, permitiendo reconstruir los agregados de `daily_consumption` ante una pérdida parcial de los datos consolidados.
+
+**Interoperabilidad**
+
+- **Definiciones de interfaces compartidas:** los contratos de comunicación entre el API Gateway y los microservicios se documentan con OpenAPI 3.1 (R04), permitiendo que el frontend web (Angular) y móvil (Flutter) descubran y consuman los endpoints de forma autónoma.
+- **Adaptadores por fabricante de sensor:** la integración de un nuevo modelo de medidor requiere únicamente un adaptador adicional en el gateway de ingesta, sin modificar el contrato canónico de lectura ni los microservicios de dominio (Escenario 14, sección 4.2.3).
+
+**Mantenibilidad**
+
+- **Encapsular mediante Repository Pattern:** el cambio de proveedor de persistencia de las lecturas de consumo se limita a la capa de repositorio, sin alterar la lógica de dominio ni los contratos de API, completándose en un máximo de tres días de trabajo (Escenario 5 de la segunda tabla de QAS).
+- **Bounded Contexts con base de datos independiente:** un cambio en la gestión de propiedades no afecta la detección de fugas, ya que cada microservicio evoluciona y se despliega de forma aislada (Architectural Concern 13, sección 4.2.5).
  
 El propósito del diseño arquitectónico de HydroSmart, producto de la startup AquaPulse, es construir una plataforma web y móvil que permita a los usuarios residenciales monitorear en tiempo real su consumo de agua, detectar fugas de manera temprana y traducir cada litro consumido en su equivalente económico, a partir de las lecturas enviadas por sensores IoT y medidores inteligentes de terceros. La arquitectura debe garantizar que cada decisión de diseño esté justificada por el valor que aporta a los segmentos objetivo del sistema: los propietarios de viviendas con áreas verdes y los estudiantes y jóvenes arrendatarios con presupuesto limitado.
  
