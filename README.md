@@ -8,7 +8,7 @@
 
 **AquaPulse** es una startup tecnológica que desarrolla soluciones digitales enfocadas en la optimización del consumo de agua en entornos residenciales. A través de su plataforma inteligente, la aplicación permite a los usuarios monitorear en tiempo real su gasto hídrico, detectar fugas de manera temprana y recibir recomendaciones personalizadas para reducir el desperdicio. La herramienta digitaliza la gestión de un recurso crítico, transformando datos complejos en información accionable para promover hogares más sostenibles y económicamente eficientes.
 
-La plataforma está diseñada para atender necesidades específicas de diversos perfiles de usuario. Por un lado, ofrece a los **propietarios con áreas verdes** un control riguroso sobre el riego y mantenimiento de jardines; por otro lado, permite a los **dueños de departamentos con servicios incluidos** supervisar el consumo de sus inquilinos para evitar sobrecostos. Asimismo, brinda a los **estudiantes y jóvenes arrendatarios** una alternativa accesible para cuidar su presupuesto mensual mediante un sistema de alertas de consumo y metas de ahorro adaptadas a sus ingresos.
+La plataforma está diseñada para atender necesidades específicas de diversos perfiles de usuario. Por un lado, ofrece a los **propietarios con áreas verdes** un control riguroso sobre el riego, detección temprana de fugas y mantenimiento del hogar; por otro lado, brinda a los **estudiantes y jóvenes arrendatarios** una alternativa accesible para cuidar su presupuesto mensual mediante un sistema de alertas de consumo y metas de ahorro adaptadas a sus ingresos.
 
 Con un firme compromiso con la sostenibilidad y la innovación, **AquaPulse** busca liderar la transformación digital del sector hídrico doméstico en Latinoamérica. Al combinar una interfaz moderna con tecnología de análisis preventivo, la startup no solo ayuda a reducir el monto de las facturas mensuales, sino que también fomenta una cultura de transparencia y responsabilidad ambiental, asegurando que cada gota de agua sea aprovechada al máximo en el hogar.
 
@@ -39,7 +39,7 @@ Ser la plataforma referente en eficiencia hídrica residencial en Latinoamérica
 
 En el ámbito residencial y de gestión inmobiliaria, la falta de control sobre el consumo de agua representa un desafío económico y ambiental crítico. El desconocimiento de los patrones de consumo y la detección tardía de fugas invisibles generan un desperdicio masivo del recurso y un incremento injustificado en las facturas mensuales. Según el Banco Mundial (2023), el agua no contabilizada en redes urbanas y domésticas puede alcanzar hasta el 40% debido a fugas no detectadas y falta de monitoreo, lo que impacta directamente en la economía de los hogares, especialmente en regiones con estrés hídrico como Latinoamérica.
 
-Un caso crítico ocurre en las viviendas con áreas verdes y en edificios de departamentos donde el costo del agua está incluido en el alquiler. En el primer caso, el riego ineficiente sin considerar la humedad real del suelo provoca un gasto excesivo de hasta un 50% más de lo necesario para el mantenimiento del jardín. En el segundo caso, los arrendadores enfrentan el riesgo de inquilinos que, al no pagar directamente el servicio, no tienen incentivos para el ahorro, lo que deriva en márgenes de ganancia reducidos para el propietario. Según la SUNASS (2022), un inodoro malogrado o una fuga interna puede desperdiciar hasta 150,000 litros de agua al mes, un costo que la mayoría de usuarios solo nota cuando llega el recibo físico semanas después.
+Un caso crítico ocurre en las viviendas con áreas verdes y jardines residenciales, donde el riego ineficiente sin considerar la humedad real del suelo provoca un gasto excesivo de hasta un 50% más de lo necesario para el mantenimiento. Asimismo, las fugas internas imperceptibles representan una amenaza financiera tanto para propietarios como para jóvenes inquilinos: según la SUNASS (2022), un inodoro malogrado o una fuga interna en el domicilio puede desperdiciar hasta 150,000 litros de agua al mes, un costo que la mayoría de usuarios solo nota cuando llega el recibo físico semanas después.
 
 Actualmente, la gestión del agua en el hogar es mayormente reactiva y manual. Los usuarios dependen de medidores analógicos de difícil acceso y de una facturación mensual que no ofrece detalles sobre dónde o cuándo se produjo el consumo. La falta de herramientas digitales accesibles que integren alertas en tiempo real y análisis de datos impide que estudiantes con bajo presupuesto o propietarios optimicen su gasto, dejando un vacío tecnológico que **HydroSmart** busca llenar para transformar el consumo pasivo en una gestión inteligente y sostenible.
 
@@ -54,17 +54,16 @@ Para entender la necesidad del proyecto, se aplicó la técnica de las 5W's + 2H
 
 ### 5W's
 ### What (¿Cuál es el problema?):
-Los usuarios residenciales carecen de visibilidad y control sobre su consumo de agua en tiempo real, lo que deriva en facturas elevadas por fugas no detectadas, riego ineficiente en áreas verdes y falta de conciencia sobre el gasto diario. Los propietarios que alquilan con servicios incluidos pierden rentabilidad al no poder monitorear el uso desmedido de sus inquilinos.
+Los usuarios residenciales carecen de visibilidad y control sobre su consumo de agua en tiempo real, lo que deriva en facturas elevadas por fugas no detectadas, riego ineficiente en áreas verdes y falta de conciencia sobre el gasto diario, afectando directamente la economía del hogar y el presupuesto de los usuarios.
 
 ### When (¿Cuándo ocurre el problema?):
 El problema es persistente pero se agrava cuando existen fugas internas imperceptibles o durante las temporadas de riego intensivo. El usuario suele identificar la falla semanas después, al recibir el recibo de pago, cuando el impacto económico y el desperdicio del recurso ya son irreversibles.
 
 ### Where (¿Dónde ocurre el problema?):
-En viviendas particulares con jardines, edificios de departamentos en alquiler y residencias estudiantiles donde el control del agua es inexistente o se limita a un medidor general de la empresa prestadora de servicios.
+En viviendas particulares con jardines, residencias estudiantiles y departamentos urbanos donde el control del agua es inexistente o se limita a un medidor general de la empresa prestadora de servicios.
 
 ### Who (¿A quién o quiénes afecta el problema?):
-- **Propietarios de viviendas:** Que enfrentan altos costos de mantenimiento por riego ineficiente.
-- **Arrendadores:** Que ven reducida su utilidad por el consumo descontrolado en unidades con servicios incluidos.
+- **Propietarios de viviendas:** Que enfrentan altos costos de mantenimiento por riego ineficiente y fugas no detectadas.
 - **Estudiantes e inquilinos:** Que poseen presupuestos limitados y necesitan minimizar gastos fijos.
 - **El Medio Ambiente:** Debido al agotamiento innecesario de fuentes de agua dulce.
 
@@ -76,7 +75,7 @@ Porque la infraestructura actual de medición es analógica y no proporciona ret
 El problema se manifiesta mediante el incremento gradual o súbito de los recibos de agua. Sin alertas inteligentes, un grifo goteando o una tubería interna dañada pueden pasar desapercibidos durante meses. Además, la falta de metas de ahorro personalizadas hace que los usuarios con bajo presupuesto no sepan qué hábitos modificar para reducir su gasto de forma efectiva.
 
 ### How Much (¿Cuánto afecta el problema?):
-El impacto económico es directo: una sola fuga no detectada puede duplicar o triplicar el costo de la factura mensual. Operativamente, para un dueño de departamentos, el consumo ineficiente de múltiples inquilinos puede representar pérdidas de cientos de dólares anuales, mientras que a nivel ecológico se desperdician miles de litros que agravan la crisis hídrica local.
+El impacto económico es directo: una sola fuga no detectada puede duplicar o triplicar el costo de la factura mensual. Operativamente, para un hogar o estudiante, un consumo desmedido o fuga no atendida representa gastos no presupuestados de cientos de soles anuales, mientras que a nivel ecológico se desperdician miles de litros que agravan la crisis hídrica local.
 
 </div>
 
@@ -88,9 +87,6 @@ El estado actual del monitoreo del consumo de agua en viviendas con jardines dep
 
 ¿Cómo podríamos diseñar una solución que permita a los propietarios gestionar su consumo de forma preventiva y reducir sus costos mensuales?
 
-El estado actual de la gestión del agua en edificios de departamentos con servicios incluidos no permite al arrendador supervisar el consumo individual de sus inquilinos. Lo que los arrendadores necesitan es visibilidad sobre el uso del agua por unidad para proteger su rentabilidad. Hemos observado que la falta de control deriva en pérdidas económicas significativas para el propietario.
-
-¿Cómo podríamos ofrecer a los arrendadores herramientas de monitoreo por unidad que les permitan identificar consumos excesivos a tiempo?
 
 El estado actual del acceso a información sobre consumo de agua no brinda a los jóvenes arrendatarios datos accionables para ajustar sus hábitos. Lo que los estudiantes necesitan es una herramienta accesible que les muestre su gasto en tiempo real y les proponga metas de ahorro adaptadas a su presupuesto. Hemos observado que sin esta información los recibos elevados los toman por sorpresa afectando su economía mensual.
 
@@ -100,7 +96,7 @@ El estado actual del acceso a información sobre consumo de agua no brinda a los
 Assumptions Worksheet
 
 - ¿Quién es el usuario?
-  Tenemos dos tipos de usuario: los propietarios (dueños de viviendas con áreas verdes y arrendadores con departamentos de servicios incluidos) y los inquilinos (estudiantes y jóvenes arrendatarios con presupuesto limitado).
+  Tenemos dos tipos de usuario: los propietarios (dueños de viviendas con áreas verdes que buscan optimizar el riego y prevenir fugas) y los inquilinos (estudiantes y jóvenes arrendatarios con presupuesto limitado que buscan evitar cobros imprevistos).
 
 - ¿Dónde encaja nuestro producto en su trabajo o vida?
   Nuestro producto servirá para monitorear y gestionar el consumo de agua del hogar de manera sencilla, integrándose en la rutina diaria del usuario como una herramienta de control financiero y ambiental desde su smartphone.
@@ -110,7 +106,7 @@ Assumptions Worksheet
 
 - ¿Cuándo y cómo es usado nuestro producto?
   Cuando el usuario desee revisar su consumo diario, recibir alertas de fugas o anomalías, o establecer metas de ahorro personalizadas desde su celular.
-- ¿Qué características son importantes? Para el segmento propietarios: monitoreo por unidad, alertas de consumo excesivo y reportes históricos. Para el segmento inquilinos: metas de ahorro adaptadas a su presupuesto y notificaciones en tiempo real.
+- ¿Qué características son importantes? Para el segmento propietarios: monitoreo del consumo de agua y caudal en tiempo real, alertas de posibles fugas, optimización de riego y reportes históricos. Para el segmento inquilinos: metas de ahorro adaptadas a su presupuesto y notificaciones de consumo en tiempo real.
 -  ¿Cómo debe verse nuestro producto y cómo comportarse? Nuestro producto deberá transmitir confianza y claridad, presentando datos complejos de consumo de forma visual y simple. Debe verse moderno, minimalista y fácil de usar para cualquier perfil de usuario.
 
 Business Assumptions:
@@ -124,7 +120,6 @@ Business Assumptions:
 
 - Creemos que si ofrecemos a los propietarios de viviendas con áreas verdes un sistema de monitoreo en tiempo real con alertas de consumo excesivo, entonces podrán reducir su gasto hídrico mensual. Sabremos que estamos en lo correcto cuando los usuarios reporten una reducción de al menos 20% en su factura de agua durante los primeros tres meses de uso.
 
-- Creemos que si brindamos a los arrendadores una herramienta de monitoreo por unidad que les permita identificar consumos desmedidos de sus inquilinos, entonces podrán proteger su rentabilidad y reducir pérdidas económicas. Sabremos que estamos en lo correcto cuando los arrendadores reporten una mejora en el control de sus gastos de agua y una reducción de conflictos con inquilinos por consumo excesivo.
 
 - Creemos que si proporcionamos a los jóvenes arrendatarios metas de ahorro personalizadas y alertas de consumo adaptadas a su presupuesto, entonces adoptarán hábitos de consumo más responsables. Sabremos que estamos en lo correcto cuando los usuarios del segmento inquilinos logren mantenerse dentro de su meta de consumo mensual durante al menos dos meses consecutivos.
 
