@@ -714,11 +714,26 @@ El diagrama de contenedores muestra la estructura general de la plataforma Hydro
 
 Dentro del límite de HydroSmart se ubican los contenedores responsables de las funcionalidades principales: User Management, Devices Management, Consumption Monitoring, Anomaly Detection, Analytics / Reporting, Saving Goals, Notifications y Subscription Management. Esta separación permite mantener responsabilidades claras y facilita la evolución independiente de cada módulo funcional.
 
+La vista también evidencia las integraciones externas necesarias para que la plataforma funcione sin concentrar toda la complejidad dentro del backend. Firebase Authentication se encarga de la validación de identidad; Firebase Cloud Messaging y SendGrid soportan la comunicación con el usuario; Stripe/Culqi procesa los pagos de suscripción; AWS S3 almacena reportes descargables e imágenes de perfil; y el gateway MQTT permite recibir lecturas desde sensores o medidores inteligentes. De esta manera, la arquitectura mantiene el dominio principal enfocado en el monitoreo hídrico, mientras delega capacidades especializadas a servicios externos.
+
 ![Diagrama de Contenedores de HydroSmart](images/hydrosmart-c4-containers-visualparadigm.png)
 
 **Diagrama de Componentes de User Management**
 
 El contenedor User Management concentra las responsabilidades de registro, inicio de sesión, gestión de perfiles y validación de roles. Su diseño separa los controladores REST de la lógica de autenticación, perfil y roles, además de utilizar un adaptador para comunicarse con Firebase Authentication.
+
+El sistema se estructura en los siguientes bloques y componentes principales:
+
+- **Puntos de Entrada (Controllers):** El servicio expone interfaces HTTP en la capa de presentación para recibir solicitudes enrutadas desde el API Gateway.
+  - **Authentication Controller:** Expone los endpoints REST para registro e inicio de sesión de usuarios.
+  - **User Controller:** Permite consultar y gestionar usuarios, perfiles y roles asociados a la cuenta.
+- **Lógica de Aplicación Especializada:** La lógica de identidad se separa en servicios especializados para mantener responsabilidades claras.
+  - **Authentication Service:** Orquesta el proceso de autenticación y sesión del usuario, delegando la validación de identidad al adaptador de Firebase.
+  - **Profile Service:** Administra los datos de perfil y preferencias del usuario.
+  - **Role Service:** Valida los permisos según el rol registrado: propietario, arrendador, inquilino o administrador.
+- **Persistencia y Adaptadores de Infraestructura:** El núcleo de identidad se mantiene desacoplado de proveedores externos y almacenamiento.
+  - **Firebase Auth Adapter:** Encapsula la comunicación con Firebase Authentication para validar credenciales y tokens JWT.
+  - **User Repository:** Persiste usuarios, perfiles y roles en MySQL, evitando que la lógica de aplicación dependa directamente de consultas SQL.
 
 ![Diagrama de Componentes de User Management](images/hydrosmart-components-user-management.png)
 
@@ -726,11 +741,37 @@ El contenedor User Management concentra las responsabilidades de registro, inici
 
 El contenedor Consumption Monitoring representa el flujo principal de recepción y consulta de lecturas de consumo. Las lecturas provenientes del gateway MQTT son recibidas por un worker de ingesta, normalizadas por el servicio de consumo y persistidas en MongoDB como series de tiempo. Además, el servicio consulta la información de dispositivos vinculados y solicita la evaluación de anomalías cuando corresponde.
 
+El sistema se estructura en los siguientes bloques y componentes principales:
+
+- **Puntos de Entrada:** El contenedor recibe tanto solicitudes síncronas desde clientes como lecturas provenientes de sensores.
+  - **Consumption Controller:** Expone endpoints REST para consultar consumo actual, histórico y datos asociados al dashboard.
+  - **Telemetry Ingestion Worker:** Recibe lecturas enviadas por el gateway MQTT y las entrega al servicio de consumo para su validación.
+- **Lógica de Aplicación Especializada:** El procesamiento de lecturas se concentra en servicios que validan el origen, normalizan datos y coordinan acciones posteriores.
+  - **Consumption Service:** Valida, normaliza y registra lecturas de consumo recibidas desde sensores o consultas internas.
+  - **Device Lookup Service:** Verifica que el medidor, vivienda o unidad exista y se encuentre correctamente vinculado al usuario correspondiente.
+  - **Anomaly Detection Client:** Solicita al contenedor Anomaly Detection la evaluación de posibles fugas o consumos inusuales.
+- **Persistencia e Integración de Telemetría:** La información de consumo se almacena separando datos transaccionales y datos de series de tiempo.
+  - **Telemetry Repository:** Persiste lecturas de consumo en MongoDB como series de tiempo, permitiendo consultas históricas y análisis posterior.
+  - **MySQL Database:** Se consulta para validar dispositivos, viviendas, unidades y relaciones de propiedad.
+
 ![Diagrama de Componentes de Consumption Monitoring](images/hydrosmart-components-consumption-monitoring.png)
 
 **Diagrama de Componentes de Anomaly Detection**
 
 El contenedor Anomaly Detection evalúa umbrales, patrones históricos y reglas configurables para identificar consumos inusuales o posibles fugas. Cuando se detecta una anomalía, el servicio registra el resultado y solicita al contenedor Notifications el envío de una alerta al usuario.
+
+El sistema se estructura en los siguientes bloques y componentes principales:
+
+- **Punto de Entrada (Controller):** El servicio expone una interfaz para recibir solicitudes de evaluación desde otros contenedores.
+  - **Anomaly Controller:** Expone operaciones REST para evaluar lecturas de consumo y consultar resultados de anomalías detectadas.
+- **Lógica de Aplicación Especializada:** La detección se organiza en componentes que separan reglas, comparación histórica y decisión final.
+  - **Anomaly Detection Service:** Coordina la evaluación de lecturas, aplica criterios de detección y determina si existe una fuga o consumo inusual.
+  - **Detection Rule Engine:** Aplica reglas configurables de detección, como umbrales máximos, consumo continuo o comportamiento fuera del horario habitual.
+  - **Consumption Baseline Service:** Compara las lecturas actuales contra patrones históricos para reducir falsos positivos.
+- **Persistencia y Comunicación con Otros Contenedores:** Los resultados se registran y se comunican a los servicios responsables de alertar al usuario.
+  - **Anomaly Repository:** Registra anomalías detectadas, estado de atención y evidencia asociada en MySQL.
+  - **Notification Client:** Solicita al contenedor Notifications el envío de alertas cuando se confirma una anomalía.
+  - **MongoDB Database:** Provee lecturas históricas utilizadas para construir la línea base de consumo.
 
 ![Diagrama de Componentes de Anomaly Detection](images/hydrosmart-components-anomaly-detection.png)
 
@@ -738,17 +779,43 @@ El contenedor Anomaly Detection evalúa umbrales, patrones históricos y reglas 
 
 El contenedor Notifications gestiona el envío y registro de alertas, mensajes y recomendaciones. Para ello utiliza adaptadores específicos hacia Firebase Cloud Messaging y SendGrid, manteniendo la lógica de notificación desacoplada de los proveedores externos.
 
+El sistema se estructura en los siguientes bloques y componentes principales:
+
+- **Punto de Entrada (Controller):** El servicio expone endpoints para consultar y administrar las notificaciones del usuario.
+  - **Notification Controller:** Permite recuperar alertas, revisar mensajes y actualizar estados de notificación desde la Web App o Mobile App.
+- **Lógica de Aplicación Especializada:** El envío de mensajes se centraliza en un servicio que decide el canal y aplica preferencias del usuario.
+  - **Notification Service:** Orquesta alertas, mensajes y recomendaciones, seleccionando si corresponde enviar una notificación push, correo electrónico o registrar únicamente el evento.
+- **Adaptadores y Persistencia:** La comunicación externa se encapsula mediante adaptadores para evitar acoplamiento directo con proveedores.
+  - **Firebase Cloud Messaging Adapter:** Envía notificaciones push hacia la Mobile App mediante Firebase Cloud Messaging.
+  - **SendGrid Email Adapter:** Envía correos electrónicos cuando se requiere un canal complementario o de respaldo.
+  - **Notification Repository:** Registra alertas enviadas, estados y trazabilidad de eventos importantes como fugas, consumos inusuales o metas próximas a alcanzarse.
+
 ![Diagrama de Componentes de Notifications](images/hydrosmart-components-notifications.png)
 
 **Diagrama de Componentes de Analytics / Reporting**
 
 El contenedor Analytics / Reporting permite consultar el dashboard, generar reportes, estimar proyecciones mensuales y recuperar lecturas históricas. Este contenedor utiliza MySQL para consultar información transaccional, MongoDB para acceder a telemetría histórica y AWS S3 para almacenar reportes descargables.
 
+El sistema se estructura en los siguientes bloques y componentes principales:
+
+- **Punto de Entrada (Controller):** El servicio expone endpoints de lectura para dashboards, historiales, comparativos y reportes.
+  - **Analytics Controller:** Recibe solicitudes de visualización de métricas, historial de consumo y generación de reportes.
+- **Lógica de Consulta y Reportes:** Las operaciones se orientan principalmente a lectura y generación de información consolidada.
+  - **Dashboard Query Service:** Consolida datos de consumo, metas y proyecciones para alimentar el dashboard del usuario.
+  - **Monthly Projection Service:** Calcula la proyección mensual de consumo y gasto estimado a partir de las lecturas históricas.
+  - **Report Generation Service:** Genera reportes descargables por periodo, vivienda o unidad, útiles para revisión del consumo y evidencia ante disputas.
+- **Persistencia y Adaptadores de Infraestructura:** El contenedor consulta datos desde distintas fuentes y delega el almacenamiento de archivos generados.
+  - **Analytics Repository:** Consulta información transaccional en MySQL, como usuarios, dispositivos, metas y configuraciones.
+  - **Telemetry Query Repository:** Consulta lecturas históricas en MongoDB para construir gráficos, comparativos y proyecciones.
+  - **AWS S3 Adapter:** Almacena reportes descargables en AWS S3, evitando guardar archivos pesados dentro de la base de datos transaccional.
+
 ![Diagrama de Componentes de Analytics / Reporting](images/hydrosmart-components-analytics-reporting.png)
 
 **Diagrama UML de detección de fuga**
 
 Como complemento a las vistas C4, se utiliza una vista UML del flujo de detección de fuga. Esta vista describe cómo una lectura enviada por sensores IoT puede ser registrada por el sistema, evaluada como posible anomalía y finalmente comunicada al usuario mediante una notificación.
+
+El flujo inicia cuando el sensor o gateway IoT envía una lectura de consumo hacia el backend. Luego, el módulo de monitoreo registra la lectura, la almacena como telemetría y solicita la evaluación del consumo. Si el módulo de detección identifica una fuga o consumo inusual, se genera una alerta y se deriva al módulo de notificaciones para su entrega al usuario. Esta vista complementa los diagramas de componentes porque muestra la secuencia de colaboración entre contenedores durante uno de los escenarios más importantes del producto.
 
 ![Diagrama UML de detección de fuga](images/detecciondefuga.drawio.png)
 
